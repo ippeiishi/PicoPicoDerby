@@ -5,6 +5,8 @@
 [Bb]uilds/
 [Ll]ogs/
 [Mm]emoryCaptures/
+/ForAndroid/
+
 
 # VS/JetBrains
 *.csproj
