@@ -16,28 +16,167 @@ MonoBehaviour:
     _entries:
       _keys:
       - 086b101f-79fd-40ef-b5a3-051811dc97f4
+      - 0e59a5b3-a459-47ae-9b00-c467b6747976
+      - 302b9574-3326-4487-976f-ca16071cb03c
+      - ce346692-81d7-4368-9697-23c8fc975617
+      - 5e455ffa-f48e-449b-9085-91cc5dd0fdae
+      - f694beb3-ffdb-4ce5-8900-ca0ee7fe8435
+      - 6fa0272c-e1c0-4655-ac34-9cb163bbdaf7
+      - a8d10193-d475-4461-918f-7fa9a29f6aea
+      - e3d259ec-e394-4797-9849-984ee0f304fe
+      - a0e5935e-fbb8-4ee7-8a91-f19d8a9d7709
+      - 98f1f6ee-83c5-4863-ad7b-cdae0c94c88c
+      - 41f860d4-18e2-4992-9d6c-c4ade39d5bde
       _values:
       - _id: 086b101f-79fd-40ef-b5a3-051811dc97f4
+        _name:
+          _value: UI Panel Base
+        _values:
+          _keys:
+          - 192c4843-0369-43dd-8397-ada1627023dc
+          - b2f10199-4ad9-4d26-9517-a311bf37a84c
+          _values:
+          - _value: {r: 0.9490196, g: 0.94509804, b: 0.9254902, a: 1}
+          - _value: {r: 1, g: 0.495283, b: 0.8533633, a: 1}
+      - _id: 0e59a5b3-a459-47ae-9b00-c467b6747976
+        _name:
+          _value: UI Panel Value BG
+        _values:
+          _keys:
+          - 192c4843-0369-43dd-8397-ada1627023dc
+          - b2f10199-4ad9-4d26-9517-a311bf37a84c
+          _values:
+          - _value: {r: 0.9843137, g: 0.9843137, b: 0.94509804, a: 1}
+          - _value: {r: 0.8254717, g: 0.98818576, b: 1, a: 1}
+      - _id: 302b9574-3326-4487-976f-ca16071cb03c
+        _name:
+          _value: Text Main
+        _values:
+          _keys:
+          - 192c4843-0369-43dd-8397-ada1627023dc
+          - b2f10199-4ad9-4d26-9517-a311bf37a84c
+          _values:
+          - _value: {r: 0.2509804, g: 0.32941177, b: 0.40784314, a: 1}
+          - _value: {r: 1, g: 0.68794703, b: 0.2971698, a: 1}
+      - _id: ce346692-81d7-4368-9697-23c8fc975617
+        _name:
+          _value: UI BG Alpha
+        _values:
+          _keys:
+          - 192c4843-0369-43dd-8397-ada1627023dc
+          - b2f10199-4ad9-4d26-9517-a311bf37a84c
+          _values:
+          - _value: {r: 0, g: 0, b: 0, a: 0.5019608}
+          - _value: {r: 1, g: 1, b: 1, a: 1}
+      - _id: 5e455ffa-f48e-449b-9085-91cc5dd0fdae
+        _name:
+          _value: UI Main Color
+        _values:
+          _keys:
+          - 192c4843-0369-43dd-8397-ada1627023dc
+          - b2f10199-4ad9-4d26-9517-a311bf37a84c
+          _values:
+          - _value: {r: 0.49803922, g: 0.6156863, b: 0.7254902, a: 1}
+          - _value: {r: 1, g: 0.6839622, b: 0.91986877, a: 1}
+      - _id: f694beb3-ffdb-4ce5-8900-ca0ee7fe8435
+        _name:
+          _value: UI Off
+        _values:
+          _keys:
+          - 192c4843-0369-43dd-8397-ada1627023dc
+          - b2f10199-4ad9-4d26-9517-a311bf37a84c
+          _values:
+          - _value: {r: 0.8392157, g: 0.8392157, b: 0.8392157, a: 1}
+          - _value: {r: 1, g: 1, b: 1, a: 1}
+      - _id: 6fa0272c-e1c0-4655-ac34-9cb163bbdaf7
+        _name:
+          _value: Btn OK
+        _values:
+          _keys:
+          - 192c4843-0369-43dd-8397-ada1627023dc
+          - b2f10199-4ad9-4d26-9517-a311bf37a84c
+          _values:
+          - _value: {r: 0.23921569, g: 0.827451, b: 0.72156864, a: 1}
+          - _value: {r: 1, g: 1, b: 1, a: 1}
+      - _id: a8d10193-d475-4461-918f-7fa9a29f6aea
+        _name:
+          _value: UI Off BG
+        _values:
+          _keys:
+          - 192c4843-0369-43dd-8397-ada1627023dc
+          - b2f10199-4ad9-4d26-9517-a311bf37a84c
+          _values:
+          - _value: {r: 0.94509804, g: 0.94509804, b: 0.94509804, a: 1}
+          - _value: {r: 0.60969925, g: 0, b: 1, a: 1}
+      - _id: e3d259ec-e394-4797-9849-984ee0f304fe
+        _name:
+          _value: UI Pure White
+        _values:
+          _keys:
+          - 192c4843-0369-43dd-8397-ada1627023dc
+          - b2f10199-4ad9-4d26-9517-a311bf37a84c
+          _values:
+          - _value: {r: 1, g: 1, b: 1, a: 1}
+          - _value: {r: 0.21807075, g: 1, b: 0, a: 1}
+      - _id: a0e5935e-fbb8-4ee7-8a91-f19d8a9d7709
+        _name:
+          _value: Btn Cancel
+        _values:
+          _keys:
+          - 192c4843-0369-43dd-8397-ada1627023dc
+          - b2f10199-4ad9-4d26-9517-a311bf37a84c
+          _values:
+          - _value: {r: 0.98039216, g: 0.5647059, b: 0.56078434, a: 1}
+          - _value: {r: 1, g: 1, b: 1, a: 1}
+      - _id: 98f1f6ee-83c5-4863-ad7b-cdae0c94c88c
+        _name:
+          _value: Btn Back
+        _values:
+          _keys:
+          - 192c4843-0369-43dd-8397-ada1627023dc
+          - b2f10199-4ad9-4d26-9517-a311bf37a84c
+          _values:
+          - _value: {r: 0.77254903, g: 0.77254903, b: 0.77254903, a: 1}
+          - _value: {r: 1, g: 0.96657693, b: 0, a: 1}
+      - _id: 41f860d4-18e2-4992-9d6c-c4ade39d5bde
         _name:
           _value: New Color
         _values:
           _keys:
           - 192c4843-0369-43dd-8397-ada1627023dc
+          - b2f10199-4ad9-4d26-9517-a311bf37a84c
           _values:
-          - _value: {r: 1, g: 0, b: 0, a: 1}
+          - _value: {r: 1, g: 1, b: 1, a: 1}
+          - _value: {r: 1, g: 1, b: 1, a: 1}
     _themes:
       _keys:
       - 192c4843-0369-43dd-8397-ada1627023dc
+      - b2f10199-4ad9-4d26-9517-a311bf37a84c
       _values:
       - _id: 192c4843-0369-43dd-8397-ada1627023dc
         _name:
           _value: Default
+      - _id: b2f10199-4ad9-4d26-9517-a311bf37a84c
+        _name:
+          _value: Test
     _entryOrders:
       _ids:
       - 086b101f-79fd-40ef-b5a3-051811dc97f4
+      - 0e59a5b3-a459-47ae-9b00-c467b6747976
+      - 302b9574-3326-4487-976f-ca16071cb03c
+      - ce346692-81d7-4368-9697-23c8fc975617
+      - 5e455ffa-f48e-449b-9085-91cc5dd0fdae
+      - f694beb3-ffdb-4ce5-8900-ca0ee7fe8435
+      - 6fa0272c-e1c0-4655-ac34-9cb163bbdaf7
+      - a8d10193-d475-4461-918f-7fa9a29f6aea
+      - e3d259ec-e394-4797-9849-984ee0f304fe
+      - a0e5935e-fbb8-4ee7-8a91-f19d8a9d7709
+      - 98f1f6ee-83c5-4863-ad7b-cdae0c94c88c
+      - 41f860d4-18e2-4992-9d6c-c4ade39d5bde
     _themeOrders:
       _ids:
       - 192c4843-0369-43dd-8397-ada1627023dc
+      - b2f10199-4ad9-4d26-9517-a311bf37a84c
     _activeThemeId: 192c4843-0369-43dd-8397-ada1627023dc
   _gradientPalette:
     _entries:
