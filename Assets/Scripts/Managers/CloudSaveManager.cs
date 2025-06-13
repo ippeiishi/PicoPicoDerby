@@ -5,96 +5,117 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
 
-public class CloudSaveManager : MonoBehaviour
-{
+public class CloudSaveManager : MonoBehaviour {
     public static CloudSaveManager Instance { get; private set; }
 
-    // メモリ上で保持する現在のプレイヤーデータ
     [SerializeField] private PlayerData currentPlayerData;
     public PlayerData CurrentPlayerData => currentPlayerData;
 
     private const string PlayerDataKey = "PlayerData";
+    private const string FirstLaunchKey = "FirstLaunchCompleted";
 
-    void Awake()
-    {
-        Instance = this;
+    void Awake() { Instance = this; }
+
+    public bool HasCompletedFirstLaunch() {
+        return PlayerPrefs.GetInt(FirstLaunchKey, 0) == 1;
     }
 
-    /// <summary>
-    /// Cloudからデータをロードし、メモリに展開します。
-    /// </summary>
-    /// <returns>ロードに成功すればtrue、データが存在しない等の理由で失敗すればfalseを返します。</returns>
-    public async Task<bool> LoadDataFromCloudAsync()
-    {
-        try
-        {
+    public void SetFirstLaunchCompleted() {
+        PlayerPrefs.SetInt(FirstLaunchKey, 1);
+        PlayerPrefs.Save();
+        Debug.Log("FirstLaunchCompleted flag has been set in PlayerPrefs.");
+    }
+
+    public async Task<bool> LoadDataFromCloudAsync() {
+        try {
             var keysToLoad = new HashSet<string> { PlayerDataKey };
             var loadedData = await CloudSaveService.Instance.Data.Player.LoadAsync(keysToLoad);
 
-            if (loadedData.TryGetValue(PlayerDataKey, out Item item))
-            {
+            if (loadedData.TryGetValue(PlayerDataKey, out Item item)) {
                 currentPlayerData = JsonUtility.FromJson<PlayerData>(item.Value.GetAsString());
                 Debug.Log($"Data loaded from Cloud. Username: {currentPlayerData.username}");
                 return true;
-            }
-            else
-            {
+            } else {
                 Debug.LogWarning("PlayerData not found on Cloud Save.");
                 return false;
             }
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Debug.LogError($"Failed to load data from Cloud: {e}");
             return false;
         }
     }
 
-    /// <summary>
-    /// 新規ユーザーの初期データを作成し、Cloudに保存します。
-    /// </summary>
-    /// <param name="username">ユーザーが入力した名前</param>
-    public async Task CreateAndSaveInitialDataAsync(string username)
-    {
+    public async Task CreateAndSaveInitialDataAsync(string username) {
         string deviceId = SystemInfo.deviceUniqueIdentifier;
         currentPlayerData = new PlayerData(username, deviceId);
-        
-        // PlayerDataクラス自体をオブジェクトとして渡す
+
         var dataToSave = new Dictionary<string, object> { { PlayerDataKey, currentPlayerData } };
         await CloudSaveService.Instance.Data.Player.SaveAsync(dataToSave);
-        
+
         Debug.Log("Initial data created and saved to Cloud.");
     }
 
-    /// <summary>
-    /// クラウド上のデータと現在のデバイスIDを比較し、衝突をチェックします。
-    /// </summary>
-    /// <returns>衝突が検出された場合はtrueを返します。</returns>
-    public async Task<bool> CheckForDeviceConflictAsync()
-    {
-        try
-        {
+    public async Task<bool> CheckForDeviceConflictAsync() {
+        try {
             var keysToLoad = new HashSet<string> { PlayerDataKey };
             var loadedData = await CloudSaveService.Instance.Data.Player.LoadAsync(keysToLoad);
 
-            if (loadedData.TryGetValue(PlayerDataKey, out Item item))
-            {
+            if (loadedData.TryGetValue(PlayerDataKey, out Item item)) {
                 var cloudPlayerData = JsonUtility.FromJson<PlayerData>(item.Value.GetAsString());
                 string savedDeviceId = cloudPlayerData?.lastActiveDeviceID;
                 string currentDeviceId = SystemInfo.deviceUniqueIdentifier;
 
-                if (!string.IsNullOrEmpty(savedDeviceId) && savedDeviceId != currentDeviceId)
-                {
+                if (!string.IsNullOrEmpty(savedDeviceId) && savedDeviceId != currentDeviceId) {
                     Debug.LogWarning($"Device conflict detected. Cloud Device ID: {savedDeviceId}, Current: {currentDeviceId}");
-                    return true; // 衝突あり
+                    return true;
                 }
             }
-            return false; // 衝突なし、またはデータなし
-        }
-        catch (Exception e)
-        {
+            return false;
+        } catch (Exception e) {
             Debug.LogError($"Failed to check for device conflict: {e}. Assuming no conflict for safety.");
-            return false; // エラー時は安全側に倒し、衝突なしと判断
+            return false;
+        }
+    }
+
+    public async Task<bool> ExecuteFullDataWipeAsync() {
+        bool cloudDeleted = false;
+        bool localCleared = false;
+
+        try {
+            await CloudSaveService.Instance.Data.Player.DeleteAsync(PlayerDataKey);
+            Debug.Log("Deleted PlayerData from Cloud Save.");
+            cloudDeleted = true;
+        } catch (CloudSaveException e) when (e.Reason == CloudSaveExceptionReason.NotFound) {
+            Debug.Log("No PlayerData to delete from Cloud Save (already gone).");
+            cloudDeleted = true;
+        } catch (Exception e) {
+            Debug.LogError($"Failed to delete cloud data: {e}");
+            cloudDeleted = false;
+        }
+
+        try {
+            PlayerPrefs.DeleteKey(FirstLaunchKey);
+            PlayerPrefs.Save();
+            Debug.Log("Cleared FirstLaunchCompleted flag from PlayerPrefs.");
+            localCleared = true;
+        } catch (Exception e) {
+            Debug.LogError($"Failed to clear PlayerPrefs: {e}");
+            localCleared = false;
+        }
+
+        currentPlayerData = new PlayerData();
+        return cloudDeleted && localCleared;
+    }
+
+    public async Task SaveDataToCloudAsync() {
+        if (currentPlayerData == null) { return; }
+        try {
+            currentPlayerData.lastSaveTime = DateTime.UtcNow.ToString("o");
+            var dataToSave = new Dictionary<string, object> { { "PlayerData", currentPlayerData } };
+            await CloudSaveService.Instance.Data.Player.SaveAsync(dataToSave);
+            Debug.Log("Successfully saved data to Cloud.");
+        } catch (Exception e) {
+            Debug.LogError($"Failed to save data to cloud: {e}");
         }
     }
 }

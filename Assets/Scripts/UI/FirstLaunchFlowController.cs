@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System.Threading.Tasks;
+using System;
 
 public class FirstLaunchFlowController : MonoBehaviour {
     [Header("Content Panels")]
@@ -58,24 +59,36 @@ public class FirstLaunchFlowController : MonoBehaviour {
     }
 
     public async void OnConfirmCreateDataButtonPressed() {
-        if (!NetworkChecker.IsOnline()) {return;}
+        if (!NetworkChecker.IsOnline()) { return; }
         GameFlowManager.Instance.SetLoadingScreenActive(true);
 
-        bool ugsSuccess = await UGSInitializationManager.Instance.InitializeUGSIfNeeded();
-        if (!ugsSuccess) {
-            UIActionDispatcher.Instance.DispatchOpenRequest("ServerError", null);
-            GameFlowManager.Instance.SetLoadingScreenActive(false);
-            return;
-        }
+        try {
+            // 1. UGSの初期化
+            bool ugsSuccess = await UGSInitializationManager.Instance.InitializeUGSIfNeeded();
+            if (!ugsSuccess) { throw new Exception("UGS Initialization Failed."); }
 
-        string username = usernameInputField.text.Trim();
-        
-        GameFlowManager.Instance.CreateNewUserAndStartGame(username, () =>
-        {
+            // 2. 匿名認証
+            await AuthenticationManager.Instance.SignInAnonymouslyIfNeeded();
+
+            // 3. クラウドに初期データを作成・保存
+            string username = usernameInputField.text.Trim();
+            await CloudSaveManager.Instance.CreateAndSaveInitialDataAsync(username);
+
+            // 4. 初回起動完了フラグを立てる (CloudSaveManager経由で)
+            CloudSaveManager.Instance.SetFirstLaunchCompleted();
+
+            // 5. UIを更新
             welcomeMessageText.text = $"{username}さん、ようこそ！";
             SwitchState(FlowState.Welcome);
+            
+            // 6. GameFlowManagerにフロー完了を通知
+            GameFlowManager.Instance.NotifyFirstLaunchComplete();
+        } catch (Exception e) {
+            Debug.LogError($"Failed to create new user: {e}");
+            UIActionDispatcher.Instance.DispatchOpenRequest("ServerError", null);
+        } finally {
             GameFlowManager.Instance.SetLoadingScreenActive(false);
-        });
+        }
     }
 
     public void OnBackToNewOrContinueButtonPressed() {

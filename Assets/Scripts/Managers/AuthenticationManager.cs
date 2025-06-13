@@ -7,9 +7,7 @@ public class AuthenticationManager : MonoBehaviour {
     public static AuthenticationManager Instance { get; private set; }
     public bool IsLoggedIn => AuthenticationService.Instance.IsSignedIn;
 
-    void Awake() {
-        Instance = this;
-    }
+    void Awake() {Instance = this;}
 
     public async Task SignInAnonymouslyIfNeeded() {
         if (IsLoggedIn) {
@@ -22,7 +20,21 @@ public class AuthenticationManager : MonoBehaviour {
             Debug.Log($"UGS Signed in anonymously. Player ID: {AuthenticationService.Instance.PlayerId}");
         } catch (Exception e) {
             Debug.LogError($"Anonymous sign-in failed: {e}");
-            throw; // エラーを呼び出し元のInitializationManagerに伝える
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// UGSセッションからサインアウトします。
+    /// </summary>
+    public void SignOut() {
+        if (!IsLoggedIn) { return; }
+        
+        try {
+            AuthenticationService.Instance.SignOut();
+            Debug.Log("Player signed out.");
+        } catch (Exception e) {
+            Debug.LogError($"Sign out failed: {e}");
         }
     }
 }
