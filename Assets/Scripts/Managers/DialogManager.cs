@@ -71,11 +71,17 @@ public class DialogManager : MonoBehaviour {
         AssembleDialog(frameInstance, "ゲームをはじめます", contentInstance);
     }
 
-    private void ShowSoundSettingsDialog(GameObject clickedButton) {
+       private void ShowSoundSettingsDialog(GameObject clickedButton) {
         GameObject frameInstance = InstantiatePrefab(FRAME_PATH);
         GameObject contentInstance = InstantiatePrefab(CONTENTS_PATH + "Content_SoundSettings");
         GameObject footerInstance = InstantiatePrefab(CONTENTS_PATH + "Content_Footer_OK");
-        if (frameInstance == null) { return; }
+
+        Slider bgmSlider = contentInstance.transform.Find("BGMSlider")?.GetComponent<Slider>();
+        Slider seSlider = contentInstance.transform.Find("SESlider")?.GetComponent<Slider>();
+            bgmSlider.value = PlayerPrefs.GetFloat("BGMVolume", 1.0f);
+            seSlider.value = PlayerPrefs.GetFloat("SEVolume", 1.0f);
+            bgmSlider.onValueChanged.AddListener(AudioManager.i.SetBGMVolume);
+            seSlider.onValueChanged.AddListener(AudioManager.i.SetSEVolume);
         AssembleDialog(frameInstance, clickedButton, contentInstance, footerInstance);
     }
 

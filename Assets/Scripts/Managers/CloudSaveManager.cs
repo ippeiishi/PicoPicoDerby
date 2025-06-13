@@ -82,7 +82,7 @@ public class CloudSaveManager : MonoBehaviour {
         bool localCleared = false;
 
         try {
-            await CloudSaveService.Instance.Data.Player.DeleteAsync(PlayerDataKey);
+            await CloudSaveService.Instance.Data.Player.DeleteAsync(PlayerDataKey, new Unity.Services.CloudSave.Models.Data.Player.DeleteOptions());
             Debug.Log("Deleted PlayerData from Cloud Save.");
             cloudDeleted = true;
         } catch (CloudSaveException e) when (e.Reason == CloudSaveExceptionReason.NotFound) {

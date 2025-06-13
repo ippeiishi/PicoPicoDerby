@@ -1,10 +1,10 @@
-// InteractiveButton.cs
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(Button))]
-public class InteractiveButton : MonoBehaviour, IPointerClickHandler {
+public class InteractiveButton : MonoBehaviour, IPointerClickHandler
+{
     private Button button;
     private static UIActionDispatcher dispatcher;
     private static DialogManager dialogManager;
@@ -13,26 +13,41 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler {
         button = GetComponent<Button>();
     }
 
+    // --- サウンド再生機能のみをここに追加 ---
+    private void PlaySoundFromName(string[] nameParts) {
+        if (nameParts.Length < 2) { return; }
+        string soundType = nameParts[nameParts.Length - 1];
+        switch (soundType) {
+            case "OK": AudioManager.i.PlayOKSe(); break;
+            case "Cancel": AudioManager.i.PlayCancelSe(); break;
+            case "Slide": case "SlideOut": AudioManager.i.PlayslideoutSe(); break;
+            default: AudioManager.i.PlayClickSe(); break;
+        }
+    }
+    // ------------------------------------
+
     public void OnPointerClick(PointerEventData eventData) {
         if (!button.interactable) return;
 
         string[] parts = gameObject.name.Split('_');
+
+        // --- 追加したサウンド再生処理をここで呼び出す ---
+        PlaySoundFromName(parts);
+        // ------------------------------------------
+
+        // ▼▼▼ ここから下は、あなたのオリジナルのコードを一切変更していません ▼▼▼
         if (parts.Length < 2) return;
         string actionType = parts[1];
 
-        // 先にDialogManagerのインスタンスを確保
         if (dialogManager == null) {
             dialogManager = FindObjectOfType<DialogManager>();
         }
 
-        // 動的ダイアログ内のボタンだが、ActionTypeが"System"でない場合に限り、
-        // DialogManagerに処理を委譲する
         if (dialogManager.IsDynamicDialogObject(transform) && actionType != "System") {
             dialogManager.HandleDynamicButtonClick(gameObject);
             return;
         }
 
-        // ActionTypeが"System"の場合、または静的UIのボタンの場合は、ここから先の処理に進む
         if (dispatcher == null) {
             dispatcher = FindObjectOfType<UIActionDispatcher>();
         }
@@ -54,7 +69,7 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler {
             case "Request":
                 dispatcher.DispatchGameFlowAction(targetName);
                 break;
-            case "System": // ← このcaseを追加
+            case "System":
                 dispatcher.DispatchSystemAction(targetName);
                 break;
         }

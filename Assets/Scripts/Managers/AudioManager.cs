@@ -1,174 +1,114 @@
 using UnityEngine;
-using System.Threading;
 using UnityEngine.UI;
+using System.Collections.Generic;
+
 public class AudioManager : MonoBehaviour
 {
     public static AudioManager i;
 
     public AudioSource bgmSource;
-    public AudioSource seSource;
-
     public AudioClip[] bgmClips;
     public AudioClip[] seClips;
     public AudioClip[] jingleClips;
 
-    public AudioClip okSe; // 決定音
-    public AudioClip cancelSe;   // キャンセル音
-    public AudioClip clickSe;   // キャンセル音
-    public AudioClip slideoutSe;   // キャンセル音
-    private bool isMuted = false;
-    private const string MutedKey = "Muted";
+    public AudioClip okSe;
+    public AudioClip cancelSe;
+    public AudioClip clickSe;
+    public AudioClip slideoutSe;
 
-public GameObject MuteButton;
+    [SerializeField] private int seSourcePoolSize = 8;
+    private List<AudioSource> seSourcePool;
+    private int nextSeSourceIndex = 0;
 
-[SerializeField] private Slider bgmSlider;
-[SerializeField] private Slider seSlider;
+    private float bgmBaseVolume = 1.0f;
+    private float seBaseVolume = 1.0f;
 
-private void Start(){
-    if (bgmSlider != null) bgmSlider.value = bgmSource.volume;
-    if (seSlider != null) seSlider.value = seSource.volume;
-}
-public void SetBGMVolume(float volume){
-    bgmSource.volume = volume;
-}
+    private const string BGMVolumeKey = "BGMVolume";
+    private const string SEVolumeKey = "SEVolume";
 
-public void SetSEVolume(float volume){
-    seSource.volume = volume;
-}
-    private void Awake()
-    {
-        if (i == null)
-        {
-            i = this;
-            // シーンを跨がない場合は DontDestroyOnLoad は不要です
-        }
-        else
-        {
-            Destroy(gameObject);
-            return;
+    private void Awake() { i = this; }
+
+    private void Start() {
+        seSourcePool = new List<AudioSource>();
+        for (int j = 0; j < seSourcePoolSize; j++) {
+            GameObject sourceGO = new GameObject("SE_Source_" + j);
+            sourceGO.transform.SetParent(this.transform);
+            AudioSource source = sourceGO.AddComponent<AudioSource>();
+            source.playOnAwake = false;
+            seSourcePool.Add(source);
         }
 
-        // ミュート状態の読み込み
-        isMuted = PlayerPrefs.GetInt(MutedKey, 0) == 1;
-        UpdateMuteState();
-        PlayBGM(0, 1.0f);
+        bgmBaseVolume = PlayerPrefs.GetFloat(BGMVolumeKey, 1.0f);
+        seBaseVolume = PlayerPrefs.GetFloat(SEVolumeKey, 1.0f);
+
+        SetBGMVolume(bgmBaseVolume);
+        SetSEVolume(seBaseVolume);
+
+        PlayBGM(0);
     }
 
-    public void PlayBGM(int index, float volume = 1.0f)
-    {
-        if (IsValidClip(bgmClips, index))
-        {
+    public void SetBGMVolume(float volume) {
+        bgmBaseVolume = volume;
+        bgmSource.volume = bgmBaseVolume;
+        PlayerPrefs.SetFloat(BGMVolumeKey, bgmBaseVolume);
+    }
+
+    public void SetSEVolume(float volume) {
+        seBaseVolume = volume;
+        foreach (var source in seSourcePool) {
+            source.volume = seBaseVolume;
+        }
+        PlayerPrefs.SetFloat(SEVolumeKey, seBaseVolume);
+    }
+
+    public void PlayBGM(int index, float volumeScale = 1.0f) {
+        if (IsValidClip(bgmClips, index)) {
             bgmSource.clip = bgmClips[index];
-            bgmSource.volume = volume;
+            bgmSource.volume = bgmBaseVolume * volumeScale;
             bgmSource.Play();
         }
     }
 
-    public void PauseBGM()
-    {
-        if (bgmSource.isPlaying)
-        {
-            bgmSource.Pause();
+    public void PlaySE(int index, float volumeScale = 1.0f, float delay = 0.0f) {
+        if (IsValidClip(seClips, index)) {
+            AudioSource source = seSourcePool[nextSeSourceIndex];
+            nextSeSourceIndex = (nextSeSourceIndex + 1) % seSourcePoolSize;
+
+            source.clip = seClips[index];
+            source.volume = seBaseVolume * volumeScale;
+            
+            if (delay > 0.0f) {
+                source.PlayDelayed(delay);
+            } else {
+                source.Play();
+            }
         }
     }
 
-    public void UnPauseBGM()
-    {
-        if (bgmSource.clip != null)
-        {
-            bgmSource.UnPause();
-        }
-    }
-
-    public void StopBGM()
-    {
-        bgmSource.Stop();
-    }
-public void PlaySE(int index, float volume = 1.0f, float delay = 0.0f)
-{
-    if (IsValidClip(seClips, index))
-    {
-        AudioClip clip = seClips[index];
-
-        // 新しい AudioSource を生成
-        GameObject tempAudio = new GameObject("TempAudioSource");
-        AudioSource tempSource = tempAudio.AddComponent<AudioSource>();
-
-        tempSource.clip = clip;
-        tempSource.volume = volume;
-
-        // ミュート状態を適用
-        tempSource.mute = isMuted;
-
-        // 再生開始位置を設定
-        if (delay > 0.0f)
-        {
-            tempSource.time = delay;
-        }
-
-        tempSource.Play();
-
-        // 再生終了後に削除
-        Destroy(tempAudio, clip.length - delay);
-    }
-}
-
-
-
-
-
-    public void PlayJingle(int index, float volume = 1.0f)
-    {
-        if (IsValidClip(jingleClips, index))
-        {
+    public void PlayJingle(int index, float volumeScale = 1.0f) {
+        if (IsValidClip(jingleClips, index)) {
             bgmSource.Stop();
             bgmSource.clip = jingleClips[index];
-            bgmSource.volume = volume;
+            bgmSource.volume = bgmBaseVolume * volumeScale;
             bgmSource.Play();
         }
     }
 
-    public void PlayClickSe(){
-            seSource.PlayOneShot(clickSe);
-    }
-   public void PlayOKSe(){
-            seSource.PlayOneShot(okSe);
-    }
-    public void PlayCancelSe()
-    {
-            seSource.PlayOneShot(cancelSe);
-    }
-    public void PlayslideoutSe(){
-            seSource.PlayOneShot(slideoutSe);
-    }
-    public void ToggleMute()
-    {
-        isMuted = !isMuted;
-        UpdateMuteState();
-        PlayerPrefs.SetInt(MutedKey, isMuted ? 1 : 0);
+    private void PlayOneShot(AudioClip clip) {
+        if (clip == null) { return; }
+        
+        AudioSource source = seSourcePool[nextSeSourceIndex];
+        nextSeSourceIndex = (nextSeSourceIndex + 1) % seSourcePoolSize;
+        
+        source.PlayOneShot(clip, seBaseVolume);
     }
 
-    private void UpdateMuteState()
-    {
-        // BGMとSEのミュート状態を適用
-        bgmSource.mute = isMuted;
-        seSource.mute = isMuted;
+    public void PlayClickSe() { PlayOneShot(clickSe); }
+    public void PlayOKSe() { PlayOneShot(okSe); }
+    public void PlayCancelSe() { PlayOneShot(cancelSe); }
+    public void PlayslideoutSe() { PlayOneShot(slideoutSe); }
 
-        // MuteButton の子オブジェクトの表示を切り替え
-        if (MuteButton != null && MuteButton.transform.childCount >= 2)
-        {
-            MuteButton.transform.GetChild(0).gameObject.SetActive(!isMuted); // ミュートOFF時（表示）
-            MuteButton.transform.GetChild(1).gameObject.SetActive(isMuted);  // ミュートON時（表示）
-        }
-    }
-
-    public bool IsMuted()
-    {
-        return isMuted;
-    }
-
-    private bool IsValidClip(AudioClip[] clips, int index)
-    {
+    private bool IsValidClip(AudioClip[] clips, int index) {
         return clips != null && index >= 0 && index < clips.Length && clips[index] != null;
     }
 }
