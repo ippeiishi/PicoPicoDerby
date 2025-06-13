@@ -1,3 +1,4 @@
+// InteractiveButton.cs
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -10,39 +11,37 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler {
 
     void Awake() {
         button = GetComponent<Button>();
-        // AwakeでFindするのをやめて、必要な時に一度だけ見つけるようにする
     }
 
     public void OnPointerClick(PointerEventData eventData) {
         if (!button.interactable) return;
-        
-        // --- ここで判定 ---
+
+        string[] parts = gameObject.name.Split('_');
+        if (parts.Length < 2) return;
+        string actionType = parts[1];
+
+        // 先にDialogManagerのインスタンスを確保
         if (dialogManager == null) {
             dialogManager = FindObjectOfType<DialogManager>();
         }
 
-        // DialogManagerに「これってあなたの管理下？」と問い合わせる
-        if (dialogManager.IsDynamicDialogObject(transform)) {
+        // 動的ダイアログ内のボタンだが、ActionTypeが"System"でない場合に限り、
+        // DialogManagerに処理を委譲する
+        if (dialogManager.IsDynamicDialogObject(transform) && actionType != "System") {
             dialogManager.HandleDynamicButtonClick(gameObject);
             return;
         }
 
-        // --- 以下は静的なUI（モーダルなど）のボタンの処理 ---
+        // ActionTypeが"System"の場合、または静的UIのボタンの場合は、ここから先の処理に進む
         if (dispatcher == null) {
             dispatcher = FindObjectOfType<UIActionDispatcher>();
         }
-        
-        // (静的UIの処理は変更なし)
-        #region Unchanged Code
-        string[] parts = gameObject.name.Split('_');
-        if (parts.Length < 2) return;
 
-        string actionType = parts[1];
-        
+        string targetName = (parts.Length > 2 && !string.IsNullOrEmpty(parts[2])) ? parts[2] : "";
+
         switch (actionType) {
             case "Open":
             case "SlideIn":
-                string targetName = (parts.Length > 2 && !string.IsNullOrEmpty(parts[2])) ? parts[2] : "";
                 dispatcher.DispatchOpenRequest(targetName, gameObject);
                 break;
             case "Close":
@@ -52,7 +51,12 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler {
                     dispatcher.DispatchCloseRequest(container.gameObject, actionType);
                 }
                 break;
+            case "Request":
+                dispatcher.DispatchGameFlowAction(targetName);
+                break;
+            case "System": // ← このcaseを追加
+                dispatcher.DispatchSystemAction(targetName);
+                break;
         }
-        #endregion
     }
 }

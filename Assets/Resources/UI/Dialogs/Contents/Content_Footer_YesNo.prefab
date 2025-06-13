@@ -182,7 +182,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1465749014972109171, guid: 1a255b902095c4fea8f248436d75c63e, type: 3}
       propertyPath: m_Name
-      value: Btn_OK
+      value: Btn_OK_Dialog_Default
       objectReference: {fileID: 0}
     - target: {fileID: 5206586814743043871, guid: 1a255b902095c4fea8f248436d75c63e, type: 3}
       propertyPath: m_Material
@@ -372,7 +372,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7359483220624402469, guid: fd77cccaf4f9445099ef885cd380fc31, type: 3}
       propertyPath: m_Name
-      value: Button_Cancel
+      value: Btn_Cancel_Dialog_Default
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

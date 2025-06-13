@@ -1,12 +1,16 @@
 using UnityEngine;
-using DG.Tweening;
 using UnityEngine.UI;
+using DG.Tweening;
 using TMPro;
+using System;
+using System.Collections.Generic;
 
 public class DialogManager : MonoBehaviour {
     public static DialogManager Instance { get; private set; }
 
     [SerializeField] private Transform dialogsParent;
+
+    private Dictionary<GameObject, Action> okButtonActions = new Dictionary<GameObject, Action>();
 
     private const string FRAME_PATH = "UI/Dialogs/Frames/Dialog_Frame";
     private const string CONTENTS_PATH = "UI/Dialogs/Contents/";
@@ -16,47 +20,66 @@ public class DialogManager : MonoBehaviour {
         Instance = this;
     }
 
-    public bool IsDynamicDialogObject(Transform objectTransform) {
-        return objectTransform.IsChildOf(dialogsParent);
-    }
-    
     void Start() {
-        if (UIActionDispatcher.Instance != null) {
-            // 新しいイベントのシグネチャに合わせて購読する
-            UIActionDispatcher.Instance.OnRequestOpen += HandleOpenRequest;
-        }
+        UIActionDispatcher.Instance.OnRequestOpen += HandleOpenRequest;
     }
 
     void OnDestroy() {
-        if (UIActionDispatcher.Instance != null) {
-            UIActionDispatcher.Instance.OnRequestOpen -= HandleOpenRequest;
-        }
+        UIActionDispatcher.Instance.OnRequestOpen -= HandleOpenRequest;
     }
-    
-      public void HandleDynamicButtonClick(GameObject buttonObject) {
+
+    public bool IsDynamicDialogObject(Transform objectTransform) {
+        return objectTransform.IsChildOf(dialogsParent);
+    }
+
+    public void HandleDynamicButtonClick(GameObject buttonObject) {
         Transform panelTransform = buttonObject.transform.parent.parent;
         GameObject dialogInstance = panelTransform.parent.gameObject;
-
         string buttonName = buttonObject.name;
-        if (buttonName.Contains("Close") || buttonName.Contains("Cancel")) {
-            AnimatePopupClose(dialogInstance);
-        } else if (buttonName.Contains("OK")) {
+
+        if (buttonName.Contains("OK")) {
+            if (okButtonActions.TryGetValue(dialogInstance, out Action action)) {
+                action?.Invoke();
+            } else {
+                AnimatePopupClose(dialogInstance);
+            }
+        } else if (buttonName.Contains("Close") || buttonName.Contains("Cancel")) {
             AnimatePopupClose(dialogInstance);
         }
     }
-    // HandleOpenRequestがGameObjectを受け取るように変更
+
     private void HandleOpenRequest(string targetName, GameObject clickedButton) {
-        switch (targetName) {
-            case "SoundSettings":
-                ShowSoundSettingsDialog(clickedButton);
-                break;
-            case "ReturnToTitle":
-                ShowReturnToTitleDialog(clickedButton);
-                break;
+        if (clickedButton != null) {
+            switch (targetName) {
+                case "SoundSettings":
+                    ShowSoundSettingsDialog(clickedButton);
+                    break;
+                case "ReturnToTitle":
+                    ShowReturnToTitleDialog(clickedButton);
+                    break;
+            }
+        } else {
+            switch (targetName) {
+                case "FirstLaunch":
+                    ShowFirstLaunchDialog();
+                    break;
+                case "NetworkError":
+                    ShowErrorDialog("ネットワークエラー", "インターネットに接続できませんでした。接続を確認して、もう一度お試しください。");
+                    break;
+                case "ServerError":
+                    ShowErrorDialog("サーバーエラー", "サーバーとの通信に失敗しました。時間をおいてから、もう一度お試しください。");
+                    break;
+            }
         }
     }
-    
-    // 各Show...メソッドもGameObjectを受け取って、AssembleDialogに渡す
+
+    private void ShowFirstLaunchDialog() {
+        GameObject frameInstance = InstantiatePrefab(FRAME_PATH);
+        GameObject contentInstance = InstantiatePrefab(CONTENTS_PATH + "Content_NewOrContinue");
+        if (frameInstance == null) return;
+        AssembleDialog(frameInstance, "ゲームをはじめます", contentInstance);
+    }
+
     private void ShowSoundSettingsDialog(GameObject clickedButton) {
         GameObject frameInstance = InstantiatePrefab(FRAME_PATH);
         GameObject contentInstance = InstantiatePrefab(CONTENTS_PATH + "Content_SoundSettings");
@@ -70,11 +93,30 @@ public class DialogManager : MonoBehaviour {
         GameObject messageInstance = InstantiatePrefab(CONTENTS_PATH + "Content_Message");
         GameObject footerInstance = InstantiatePrefab(CONTENTS_PATH + "Content_Footer_YesNo");
         if (frameInstance == null) return;
+
+        okButtonActions[frameInstance] = () => {
+            UIActionDispatcher.Instance.DispatchSystemAction("ReloadScene");
+        };
+
         AssembleDialog(frameInstance, clickedButton, messageInstance, footerInstance);
-        
+
         var messageText = messageInstance.GetComponentInChildren<TextMeshProUGUI>();
         if (messageText != null) {
-            messageText.text = "アプリを再起動してタイトルに戻ります。";
+            messageText.text = "タイトルに戻りますか？";
+        }
+    }
+
+    public void ShowErrorDialog(string title, string message) {
+        GameObject frameInstance = InstantiatePrefab(FRAME_PATH);
+        GameObject messageInstance = InstantiatePrefab(CONTENTS_PATH + "Content_Message");
+        GameObject footerInstance = InstantiatePrefab(CONTENTS_PATH + "Content_Footer_BackToTitle");
+        if (frameInstance == null) return;
+
+        AssembleDialog(frameInstance, title, messageInstance, footerInstance);
+
+        var messageText = messageInstance.GetComponentInChildren<TextMeshProUGUI>();
+        if (messageText != null) {
+            messageText.text = message;
         }
     }
 
@@ -83,21 +125,28 @@ public class DialogManager : MonoBehaviour {
         if (prefab == null) return null;
         return Instantiate(prefab, dialogsParent);
     }
-    
-    // AssembleDialogが、ハードコードされたtitleの代わりにclickedButtonを受け取る
-    private void AssembleDialog(GameObject frameInstance, GameObject clickedButton, params GameObject[] contentInstances) {
+
+    public void AssembleDialog(GameObject frameInstance, GameObject clickedButton, params GameObject[] contentInstances) {
+        var buttonTextComponent = clickedButton.transform.GetChild(0)?.GetComponent<TextMeshProUGUI>();
+        string title = (buttonTextComponent != null) ? buttonTextComponent.text : string.Empty;
+        AssembleDialogInternal(frameInstance, title, contentInstances);
+    }
+
+    public void AssembleDialog(GameObject frameInstance, string title, params GameObject[] contentInstances) {
+        AssembleDialogInternal(frameInstance, title, contentInstances);
+    }
+
+    private void AssembleDialogInternal(GameObject frameInstance, string title, params GameObject[] contentInstances) {
+        if (frameInstance == null) return;
         Transform panel = frameInstance.transform.Find("Panel_Dialog");
         if (panel == null) {
             Destroy(frameInstance);
             return;
         }
 
-        // --- タイトルを動的に設定するロジック ---
-        var buttonText = clickedButton.transform.GetChild(0)?.GetComponent<TextMeshProUGUI>();
         var titleText = panel.transform.Find("Header")?.GetChild(0)?.GetComponent<TextMeshProUGUI>();
-
-        if (buttonText != null && titleText != null) {
-            titleText.text = buttonText.text;
+        if (titleText != null) {
+            titleText.text = title;
         }
 
         foreach (var content in contentInstances) {
@@ -108,7 +157,7 @@ public class DialogManager : MonoBehaviour {
         AnimatePopupOpen(frameInstance);
     }
 
-        private void AnimatePopupOpen(GameObject target) {
+    public void AnimatePopupOpen(GameObject target, Action onComplete = null) {
         Transform panel = target.transform.Find("Panel_Dialog");
         Image bgImage = target.transform.Find("BG_Overlay")?.GetComponent<Image>();
         CanvasGroup panelCg = panel.GetComponent<CanvasGroup>();
@@ -118,14 +167,15 @@ public class DialogManager : MonoBehaviour {
         panelCg.alpha = 0;
         panelCg.DOFade(1, ANIM_DURATION).SetEase(Ease.OutQuad);
         panel.DOScale(0, 0);
-         var buttons = target.GetComponentsInChildren<Button>(true);
+        var buttons = target.GetComponentsInChildren<Button>(true);
         foreach (var b in buttons) { b.interactable = false; }
         panel.DOScale(1, ANIM_DURATION).SetEase(Ease.OutBack).onComplete = () => {
             foreach (var b in buttons) { b.interactable = true; }
+            onComplete?.Invoke();
         };
     }
 
-    private void AnimatePopupClose(GameObject target) {
+    public void AnimatePopupClose(GameObject target) {
         Transform panel = target.transform.Find("Panel_Dialog");
         Image bgImage = target.transform.Find("BG_Overlay")?.GetComponent<Image>();
         CanvasGroup panelCg = panel.GetComponent<CanvasGroup>();
@@ -134,7 +184,14 @@ public class DialogManager : MonoBehaviour {
         panelCg.DOFade(0, ANIM_DURATION).SetEase(Ease.InQuad);
         bgImage.DOFade(0, ANIM_DURATION);
         panel.DOScale(0, ANIM_DURATION).SetEase(Ease.InBack).onComplete = () => {
-            Destroy(target);
+            if (okButtonActions.ContainsKey(target)) {
+                okButtonActions.Remove(target);
+            }
+            if (IsDynamicDialogObject(target.transform)) {
+                Destroy(target);
+            } else {
+                target.SetActive(false);
+            }
         };
     }
 }

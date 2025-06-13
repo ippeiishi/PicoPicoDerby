@@ -3,7 +3,7 @@ using DG.Tweening;
 using UnityEngine.UI;
 using TMPro; // TextMeshProを使うために必要
 
-public class UIManager : MonoBehaviour {
+public class ModalManager : MonoBehaviour {
     [Header("UI Containers")]
     [SerializeField] private GameObject menuModal;
     [SerializeField] private GameObject subModalsContainer;
@@ -57,13 +57,11 @@ public class UIManager : MonoBehaviour {
         }
     }
     
-    // AnimateSlideInが、タイトル設定のためにclickedButtonを受け取るように変更
     private void AnimateSlideIn(GameObject target, GameObject clickedButton) {
         Transform panel = target.transform.Find("Panel_Menu") ?? target.transform.Find("Panel_Full");
         Image bgImage = target.transform.Find("BG_Overlay")?.GetComponent<Image>();
         if (panel == null) return;
         
-        // --- タイトルを動的に設定するロジックを追加 ---
         if (clickedButton != null) {
             var buttonText = clickedButton.transform.GetChild(0)?.GetComponent<TextMeshProUGUI>();
             var titleText = panel.transform.Find("Header")?.GetChild(0)?.GetComponent<TextMeshProUGUI>();
