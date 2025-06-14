@@ -63,25 +63,17 @@ public class FirstLaunchFlowController : MonoBehaviour {
         GameFlowManager.Instance.SetLoadingScreenActive(true);
 
         try {
-            // 1. UGSの初期化
-            bool ugsSuccess = await UGSInitializationManager.Instance.InitializeUGSIfNeeded();
-            if (!ugsSuccess) { throw new Exception("UGS Initialization Failed."); }
-
-            // 2. 匿名認証
-            await AuthenticationManager.Instance.SignInAnonymouslyIfNeeded();
-
-            // 3. クラウドに初期データを作成・保存
-            string username = usernameInputField.text.Trim();
-            await CloudSaveManager.Instance.CreateAndSaveInitialDataAsync(username);
-
-            // 4. 初回起動完了フラグを立てる (CloudSaveManager経由で)
-            CloudSaveManager.Instance.SetFirstLaunchCompleted();
-
-            // 5. UIを更新
-            welcomeMessageText.text = $"{username}さん、ようこそ！";
-            SwitchState(FlowState.Welcome);
             
-            // 6. GameFlowManagerにフロー完了を通知
+            string username = usernameInputField.text.Trim();
+            string initialDataJson = RemoteConfigManager.Instance.DefaultPlayerDataJson;
+             await CloudSaveManager.Instance.CreateAndSaveInitialDataAsync(username, initialDataJson);
+
+            //初回起動完了フラグを立てる (CloudSaveManager経由で)
+            CloudSaveManager.Instance.SetFirstLaunchCompleted();
+            // UIを更新
+            welcomeMessageText.text = $"{username}さん、ようこそ！";
+            SwitchState(FlowState.Welcome);   
+            // GameFlowManagerにフロー完了を通知
             GameFlowManager.Instance.NotifyFirstLaunchComplete();
         } catch (Exception e) {
             Debug.LogError($"Failed to create new user: {e}");

@@ -45,15 +45,26 @@ public class CloudSaveManager : MonoBehaviour {
         }
     }
 
-    public async Task CreateAndSaveInitialDataAsync(string username) {
-        string deviceId = SystemInfo.deviceUniqueIdentifier;
-        currentPlayerData = new PlayerData(username, deviceId);
-
-        var dataToSave = new Dictionary<string, object> { { PlayerDataKey, currentPlayerData } };
-        await CloudSaveService.Instance.Data.Player.SaveAsync(dataToSave);
-
-        Debug.Log("Initial data created and saved to Cloud.");
+public async Task CreateAndSaveInitialDataAsync(string username, string initialDataJson) {
+    // Remote Configから取得したJSONをデシリアライズ
+    currentPlayerData = JsonUtility.FromJson<PlayerData>(initialDataJson);
+    if (currentPlayerData == null) {
+        Debug.LogError("Failed to parse initial data from Remote Config. Creating default PlayerData.");
+        currentPlayerData = new PlayerData(); // フェイルセーフ
     }
+
+    // ユーザー名とデバイスIDを上書き
+    var now = DateTime.UtcNow.ToString("o"); // ISO 8601 形式
+    currentPlayerData.username = username;
+    currentPlayerData.lastActiveDeviceID = SystemInfo.deviceUniqueIdentifier;
+    currentPlayerData.creationTime = now;
+    currentPlayerData.lastSaveTime = now;
+
+    var dataToSave = new Dictionary<string, object> { { PlayerDataKey, currentPlayerData } };
+    await CloudSaveService.Instance.Data.Player.SaveAsync(dataToSave);
+
+    Debug.Log("Initial data from Remote Config created and saved to Cloud.");
+}
 
     public async Task<bool> CheckForDeviceConflictAsync() {
         try {

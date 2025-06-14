@@ -64,7 +64,7 @@ public class GameFlowManager : MonoBehaviour {
             if (!ugsSuccess) { throw new Exception("UGS Initialization Failed."); }
             
             await AuthenticationManager.Instance.SignInAnonymouslyIfNeeded();
-
+            await RemoteConfigManager.Instance.FetchConfigsAsync();
             if (CloudSaveManager.Instance.HasCompletedFirstLaunch()) {
                 bool conflict = await CloudSaveManager.Instance.CheckForDeviceConflictAsync();
                 if (conflict) {
