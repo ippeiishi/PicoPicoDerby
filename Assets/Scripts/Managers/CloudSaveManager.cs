@@ -30,7 +30,6 @@ public class CloudSaveManager : MonoBehaviour {
         try {
             var keysToLoad = new HashSet<string> { PlayerDataKey };
             var loadedData = await CloudSaveService.Instance.Data.Player.LoadAsync(keysToLoad);
-
             if (loadedData.TryGetValue(PlayerDataKey, out Item item)) {
                 currentPlayerData = JsonUtility.FromJson<PlayerData>(item.Value.GetAsString());
                 Debug.Log($"Data loaded from Cloud. Username: {currentPlayerData.username}");
@@ -45,37 +44,30 @@ public class CloudSaveManager : MonoBehaviour {
         }
     }
 
-public async Task CreateAndSaveInitialDataAsync(string username, string initialDataJson) {
-    // Remote Configから取得したJSONをデシリアライズ
-    currentPlayerData = JsonUtility.FromJson<PlayerData>(initialDataJson);
-    if (currentPlayerData == null) {
-        Debug.LogError("Failed to parse initial data from Remote Config. Creating default PlayerData.");
-        currentPlayerData = new PlayerData(); // フェイルセーフ
+    public async Task CreateAndSaveInitialDataAsync(string username, string initialDataJson) {
+        currentPlayerData = JsonUtility.FromJson<PlayerData>(initialDataJson);
+        if (currentPlayerData == null) {
+            Debug.LogError("Failed to parse initial data from Remote Config. Creating default PlayerData.");
+            currentPlayerData = new PlayerData();
+        }
+        var now = DateTime.UtcNow.ToString("o");
+        currentPlayerData.username = username;
+        currentPlayerData.lastActiveDeviceID = SystemInfo.deviceUniqueIdentifier;
+        currentPlayerData.creationTime = now;
+        currentPlayerData.lastSaveTime = now;
+        var dataToSave = new Dictionary<string, object> { { PlayerDataKey, currentPlayerData } };
+        await CloudSaveService.Instance.Data.Player.SaveAsync(dataToSave);
+        Debug.Log("Initial data from Remote Config created and saved to Cloud.");
     }
-
-    // ユーザー名とデバイスIDを上書き
-    var now = DateTime.UtcNow.ToString("o"); // ISO 8601 形式
-    currentPlayerData.username = username;
-    currentPlayerData.lastActiveDeviceID = SystemInfo.deviceUniqueIdentifier;
-    currentPlayerData.creationTime = now;
-    currentPlayerData.lastSaveTime = now;
-
-    var dataToSave = new Dictionary<string, object> { { PlayerDataKey, currentPlayerData } };
-    await CloudSaveService.Instance.Data.Player.SaveAsync(dataToSave);
-
-    Debug.Log("Initial data from Remote Config created and saved to Cloud.");
-}
 
     public async Task<bool> CheckForDeviceConflictAsync() {
         try {
             var keysToLoad = new HashSet<string> { PlayerDataKey };
             var loadedData = await CloudSaveService.Instance.Data.Player.LoadAsync(keysToLoad);
-
             if (loadedData.TryGetValue(PlayerDataKey, out Item item)) {
                 var cloudPlayerData = JsonUtility.FromJson<PlayerData>(item.Value.GetAsString());
                 string savedDeviceId = cloudPlayerData?.lastActiveDeviceID;
                 string currentDeviceId = SystemInfo.deviceUniqueIdentifier;
-
                 if (!string.IsNullOrEmpty(savedDeviceId) && savedDeviceId != currentDeviceId) {
                     Debug.LogWarning($"Device conflict detected. Cloud Device ID: {savedDeviceId}, Current: {currentDeviceId}");
                     return true;
@@ -91,7 +83,6 @@ public async Task CreateAndSaveInitialDataAsync(string username, string initialD
     public async Task<bool> ExecuteFullDataWipeAsync() {
         bool cloudDeleted = false;
         bool localCleared = false;
-
         try {
             await CloudSaveService.Instance.Data.Player.DeleteAsync(PlayerDataKey, new Unity.Services.CloudSave.Models.Data.Player.DeleteOptions());
             Debug.Log("Deleted PlayerData from Cloud Save.");
@@ -103,7 +94,6 @@ public async Task CreateAndSaveInitialDataAsync(string username, string initialD
             Debug.LogError($"Failed to delete cloud data: {e}");
             cloudDeleted = false;
         }
-
         try {
             PlayerPrefs.DeleteKey(FirstLaunchKey);
             PlayerPrefs.Save();
@@ -113,7 +103,6 @@ public async Task CreateAndSaveInitialDataAsync(string username, string initialD
             Debug.LogError($"Failed to clear PlayerPrefs: {e}");
             localCleared = false;
         }
-
         currentPlayerData = new PlayerData();
         return cloudDeleted && localCleared;
     }

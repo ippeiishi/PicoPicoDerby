@@ -12,6 +12,7 @@ public class DialogManager : MonoBehaviour {
     private const string FRAME_PATH = "UI/Dialogs/Frames/Dialog_Frame";
     private const string CONTENTS_PATH = "UI/Dialogs/Contents/";
     private const float ANIM_DURATION = 0.3f;
+[SerializeField] private GameObject accountSettingsDialog;
 
     void Awake() { Instance = this; }
     void Start() { UIActionDispatcher.Instance.OnRequestOpen += HandleOpenRequest; }
@@ -37,14 +38,15 @@ public class DialogManager : MonoBehaviour {
 
     private void HandleOpenRequest(string targetName, GameObject clickedButton) {
         if (clickedButton != null) {
-            switch (targetName) {
+            switch (targetName)
+            {
                 case "SoundSettings": ShowSoundSettingsDialog(clickedButton); break;
                 case "ReturnToTitle": ShowReturnToTitleDialog(clickedButton); break;
                 case "ConfirmDeleteData": ShowConfirmDeleteDataDialog(clickedButton); break;
+                case "AccountSettings":  AnimatePopupOpen(accountSettingsDialog); break;
             }
         } else {
             switch (targetName) {
-                case "FirstLaunch": ShowFirstLaunchDialog(); break;
                 case "NetworkError": ShowErrorDialog("ネットワークエラー", "インターネットに接続できませんでした。接続を確認して、もう一度お試しください。"); break;
                 case "ServerError": ShowErrorDialog("サーバーエラー", "サーバーとの通信に失敗しました。時間をおいてから、もう一度お試しください。"); break;
                 case "DeviceConflictError": ShowErrorDialog("エラー", "このアカウントは他の端末で利用されています。タイトルに戻ります。"); break;
@@ -63,14 +65,6 @@ public class DialogManager : MonoBehaviour {
         var messageText = messageInstance.GetComponentInChildren<TextMeshProUGUI>();
         if (messageText != null) { messageText.text = message; }
     }
-
-    private void ShowFirstLaunchDialog() {
-        GameObject frameInstance = InstantiatePrefab(FRAME_PATH);
-        GameObject contentInstance = InstantiatePrefab(CONTENTS_PATH + "Content_NewOrContinue");
-        if (frameInstance == null) { return; }
-        AssembleDialog(frameInstance, "ゲームをはじめます", contentInstance);
-    }
-
        private void ShowSoundSettingsDialog(GameObject clickedButton) {
         GameObject frameInstance = InstantiatePrefab(FRAME_PATH);
         GameObject contentInstance = InstantiatePrefab(CONTENTS_PATH + "Content_SoundSettings");

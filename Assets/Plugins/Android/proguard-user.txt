@@ -1,0 +1,97 @@
+#=============== Unity Engine ===============
+# Unity の基本的なクラスやメソッドを保持
+-keep class com.unity3d.player.UnityPlayerActivity { *; }
+-keep class com.unity3d.player.UnityPlayer { *; }
+-keep public class * extends androidx.appcompat.app.AppCompatActivity # 新しい Activity を使っている場合
+-keep class com.google.unity.** { *; }
+# Unity から呼ばれる可能性のあるメソッド (SendMessage など)
+-keepclassmembers class * {
+    public void UnitySendMessage(java.lang.String, java.lang.String, java.lang.String);
+}
+# シリアライズ関連
+-keepclassmembers class * implements java.io.Serializable {
+    static final long serialVersionUID;
+    private static final java.io.ObjectStreamField[] serialPersistentFields;
+    private void writeObject(java.io.ObjectOutputStream);
+    private void readObject(java.io.ObjectInputStream);
+    java.lang.Object writeReplace();
+    java.lang.Object readResolve();
+}
+
+#=============== Firebase Core ===============
+-keep class com.google.firebase.** { *; }
+-keep interface com.google.firebase.** { *; }
+# 特に FirebaseApp や関連クラス
+-keep class com.google.firebase.FirebaseApp { *; }
+-keep class com.google.firebase.FirebaseOptions { *; }
+-keep class com.google.firebase.FirebaseOptions$Builder { *; }
+-keep class com.google.firebase.platforminfo.LibraryVersionComponent { *; }
+-keep class com.google.firebase.heartbeatinfo.HeartBeatInfo { *; }
+-keep class com.google.firebase.components.** { *; }
+
+#=============== Firebase Auth ===============
+-keep class com.google.firebase.auth.** { *; }
+-keep interface com.google.firebase.auth.** { *; }
+-keep class com.google.firebase.auth.internal.** { *; }
+-keep class com.google.firebase.unity.auth.** { *; }
+
+#=============== Google Sign-In ===============
+-keep class com.google.android.gms.auth.api.signin.** { *; }
+-keep interface com.google.android.gms.auth.api.signin.** { *; }
+# Google Sign-In が依存する可能性のある GMS コア部分
+-keep class com.google.android.gms.common.** { *; }
+-keep interface com.google.android.gms.common.** { *; }
+-keep class com.google.android.gms.common.api.** { *; }
+-keep interface com.google.android.gms.common.api.** { *; }
+-keep class com.google.android.gms.common.internal.** { *; }
+-keep interface com.google.android.gms.common.internal.** { *; }
+# Google Sign-In Unity Plugin 自体のクラス (パッケージ名が正確か注意)
+-keep class com.google.googlesignin.** { *; }
+-keep interface com.google.googlesignin.** { *; }
+# 内部実装で使われる可能性のあるもの
+-keep class com.google.android.gms.internal.auth.** { *; }
+-keep class com.google.android.gms.internal.auth-api.** { *; } # ハイフン含む場合
+-keep class com.google.android.gms.internal.common.** { *; }
+
+#=============== Google Play Services Base & Tasks ===============
+# 多くの GMS ライブラリが依存
+-keep class com.google.android.gms.tasks.** { *; }
+-keep interface com.google.android.gms.tasks.** { *; }
+-keep class com.google.android.gms.base.** { *; }
+-keep interface com.google.android.gms.base.** { *; }
+
+#=============== 一般的な保持ルール ===============
+# ネイティブメソッド (JNI) を持つクラス
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+# Parcelable (Android のデータ転送形式)
+-keep class * implements android.os.Parcelable {
+  public static final android.os.Parcelable$Creator *;
+}
+# アノテーション、内部クラス、署名情報など
+-keepattributes Signature
+-keepattributes *Annotation*
+-keepattributes InnerClasses
+-keepattributes EnclosingMethod
+
+#=============== Android Core Components ===============
+# 念のため基本的な Activity, Service なども保持
+-keep public class * extends android.app.Activity
+-keep public class * extends android.app.Application
+-keep public class * extends android.app.Service
+-keep public class * extends android.content.BroadcastReceiver
+-keep public class * extends android.content.ContentProvider
+-keep public class * extends android.view.View {
+    public <init>(android.content.Context);
+    public <init>(android.content.Context, android.util.AttributeSet);
+    public <init>(android.content.Context, android.util.AttributeSet, int);
+    public void set*(...);
+}
+
+#=============== その他 (もし使っていれば) ===============
+# 例: Recaptcha (Firebase Auth が使うことがある)
+# -keep class com.google.android.recaptcha.** { *; }
+
+# 例: 他のプラグインで必要なクラスがあれば追記
+# -keep class com.example.myplugin.** { *; }

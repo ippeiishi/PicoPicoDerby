@@ -37,6 +37,7 @@ namespace uPalette.Generated
         UIPureWhite,
         BtnCancel,
         BtnBack,
+        PureRed,
         NewColor,
     }
 
@@ -68,8 +69,10 @@ namespace uPalette.Generated
                     return "a0e5935e-fbb8-4ee7-8a91-f19d8a9d7709";
                 case ColorEntry.BtnBack:
                     return "98f1f6ee-83c5-4863-ad7b-cdae0c94c88c";
-                case ColorEntry.NewColor:
+                case ColorEntry.PureRed:
                     return "41f860d4-18e2-4992-9d6c-c4ade39d5bde";
+                case ColorEntry.NewColor:
+                    return "8882fe47-37bf-4507-8e63-173dc16a0994";
                 default:
                     throw new ArgumentOutOfRangeException(nameof(entry), entry, null);
             }
