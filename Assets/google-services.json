@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1073674123330",
+    "project_id": "picopicoderby",
+    "storage_bucket": "picopicoderby.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1073674123330:android:de8aa08ab44500a9da95db",
+        "android_client_info": {
+          "package_name": "com.ideanomad.PicoPicoDerby"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1073674123330-o56hap1r03nll7u3sfd1gvn51adf4qcf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ideanomad.PicoPicoDerby",
+            "certificate_hash": "26f31a0043ca453abea18dcde794e6e26d901d1b"
+          }
+        },
+        {
+          "client_id": "1073674123330-ugo8mk76nmgvn1rpvn9hfvf4efrbnfpt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJAATcqiRu5S3abKp-uQQTQXT0dJ0-vYY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1073674123330-ugo8mk76nmgvn1rpvn9hfvf4efrbnfpt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -27,6 +27,7 @@ MonoBehaviour:
       - a0e5935e-fbb8-4ee7-8a91-f19d8a9d7709
       - 98f1f6ee-83c5-4863-ad7b-cdae0c94c88c
       - 41f860d4-18e2-4992-9d6c-c4ade39d5bde
+      - 8882fe47-37bf-4507-8e63-173dc16a0994
       _values:
       - _id: 086b101f-79fd-40ef-b5a3-051811dc97f4
         _name:
@@ -140,6 +141,16 @@ MonoBehaviour:
           - _value: {r: 1, g: 0.96657693, b: 0, a: 1}
       - _id: 41f860d4-18e2-4992-9d6c-c4ade39d5bde
         _name:
+          _value: Pure Red
+        _values:
+          _keys:
+          - 192c4843-0369-43dd-8397-ada1627023dc
+          - b2f10199-4ad9-4d26-9517-a311bf37a84c
+          _values:
+          - _value: {r: 1, g: 0, b: 0, a: 1}
+          - _value: {r: 1, g: 1, b: 1, a: 1}
+      - _id: 8882fe47-37bf-4507-8e63-173dc16a0994
+        _name:
           _value: New Color
         _values:
           _keys:
@@ -173,6 +184,7 @@ MonoBehaviour:
       - a0e5935e-fbb8-4ee7-8a91-f19d8a9d7709
       - 98f1f6ee-83c5-4863-ad7b-cdae0c94c88c
       - 41f860d4-18e2-4992-9d6c-c4ade39d5bde
+      - 8882fe47-37bf-4507-8e63-173dc16a0994
     _themeOrders:
       _ids:
       - 192c4843-0369-43dd-8397-ada1627023dc

@@ -33,7 +33,6 @@ public class FirstLaunchFlowController : MonoBehaviour {
         createUserDataFooter.SetActive(false);
         welcomeContent.SetActive(false);
         welcomeFooter.SetActive(false);
-
         switch (newState) {
             case FlowState.NewOrContinue:
                 newOrContinueContent.SetActive(true);
@@ -58,29 +57,20 @@ public class FirstLaunchFlowController : MonoBehaviour {
         Debug.Log("Continue button pressed. (Logic not implemented yet)");
     }
 
-    public async void OnConfirmCreateDataButtonPressed() {
-        if (!NetworkChecker.IsOnline()) { return; }
-        GameFlowManager.Instance.SetLoadingScreenActive(true);
-
-        try {
-            
+    public void OnConfirmCreateDataButtonPressed() {
+        _ = RequestHandler.FromUI(async () => {
             string username = usernameInputField.text.Trim();
+            if (string.IsNullOrEmpty(username)) {
+                Debug.LogWarning("Username is empty.");
+                return; 
+            }
             string initialDataJson = RemoteConfigManager.Instance.DefaultPlayerDataJson;
-             await CloudSaveManager.Instance.CreateAndSaveInitialDataAsync(username, initialDataJson);
-
-            //初回起動完了フラグを立てる (CloudSaveManager経由で)
+            await CloudSaveManager.Instance.CreateAndSaveInitialDataAsync(username, initialDataJson);
             CloudSaveManager.Instance.SetFirstLaunchCompleted();
-            // UIを更新
             welcomeMessageText.text = $"{username}さん、ようこそ！";
             SwitchState(FlowState.Welcome);   
-            // GameFlowManagerにフロー完了を通知
             GameFlowManager.Instance.NotifyFirstLaunchComplete();
-        } catch (Exception e) {
-            Debug.LogError($"Failed to create new user: {e}");
-            UIActionDispatcher.Instance.DispatchOpenRequest("ServerError", null);
-        } finally {
-            GameFlowManager.Instance.SetLoadingScreenActive(false);
-        }
+        });
     }
 
     public void OnBackToNewOrContinueButtonPressed() {
