@@ -1,7 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System.Threading.Tasks;
-using System;
+using static AuthenticationManager;
 
 public class FirstLaunchFlowController : MonoBehaviour {
     [Header("Content Panels")]
@@ -54,7 +54,43 @@ public class FirstLaunchFlowController : MonoBehaviour {
     }
 
     public void OnContinueButtonPressed() {
-        Debug.Log("Continue button pressed. (Logic not implemented yet)");
+        _ = ContinueFlowAsync();
+    }
+
+    private async Task ContinueFlowAsync() {
+        if (!NetworkChecker.IsOnline()) { return; }
+
+        GameFlowManager.Instance.SetLoadingScreenActive(true);
+
+        RecoveryResult result = await AuthenticationManager.Instance.SignInWithGoogleForRecoveryAsync();
+
+        switch (result) {
+            case RecoveryResult.Success:
+                _ = RequestHandler.FromUI(async () => {
+                    await RemoteConfigManager.Instance.FetchConfigsAsync();
+                    await CloudSaveManager.Instance.UpdateDeviceIDAfterRecoveryAsync();
+                    CloudSaveManager.Instance.SetFirstLaunchCompleted();
+                    GameFlowManager.Instance.NotifyFirstLaunchComplete();
+                    OnCloseButtonPressed();
+                });
+                break;
+
+            case RecoveryResult.AccountNotFound:
+                GameFlowManager.Instance.SetLoadingScreenActive(false);
+                AuthenticationManager.Instance.SignOut();
+                DialogManager.Instance.ShowErrorDialog(
+                    "データが見つかりません", 
+                    "このGoogleアカウントに紐づくゲームデータが見つかりませんでした。",
+                    "UI/Dialogs/Contents/Content_Footer_BackToTitle"
+                );
+                break;
+
+            case RecoveryResult.Failure:
+                GameFlowManager.Instance.SetLoadingScreenActive(false);
+                AuthenticationManager.Instance.SignOut();
+                UIActionDispatcher.Instance.DispatchOpenRequest("ServerError", null);
+                break;
+        }
     }
 
     public void OnConfirmCreateDataButtonPressed() {
@@ -64,6 +100,8 @@ public class FirstLaunchFlowController : MonoBehaviour {
                 Debug.LogWarning("Username is empty.");
                 return; 
             }
+             await AuthenticationManager.Instance.SignInAnonymouslyIfNeeded();
+                    await RemoteConfigManager.Instance.FetchConfigsAsync();
             string initialDataJson = RemoteConfigManager.Instance.DefaultPlayerDataJson;
             await CloudSaveManager.Instance.CreateAndSaveInitialDataAsync(username, initialDataJson);
             CloudSaveManager.Instance.SetFirstLaunchCompleted();

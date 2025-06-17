@@ -66,10 +66,9 @@ public class GameFlowManager : MonoBehaviour {
             bool ugsSuccess = await UGSInitializationManager.Instance.InitializeUGSIfNeeded();
             if (!ugsSuccess) { throw new Exception("UGS Initialization Failed."); }
             
-            await AuthenticationManager.Instance.SignInAnonymouslyIfNeeded();
-            await RemoteConfigManager.Instance.FetchConfigsAsync();
-
             if (CloudSaveManager.Instance.HasCompletedFirstLaunch()) {
+                 await AuthenticationManager.Instance.SignInAnonymouslyIfNeeded();
+                        await RemoteConfigManager.Instance.FetchConfigsAsync();
                 bool conflict = await CloudSaveManager.Instance.CheckForDeviceConflictAsync();
                 if (conflict) {
                     UIActionDispatcher.Instance.DispatchOpenRequest("DeviceConflictError", null);

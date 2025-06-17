@@ -9,6 +9,12 @@ public class AuthenticationManager : MonoBehaviour {
     public static AuthenticationManager Instance { get; private set; }
     public bool IsLoggedIn => AuthenticationService.Instance.IsSignedIn;
 
+    public enum RecoveryResult {
+        Success,
+        AccountNotFound,
+        Failure
+    }
+
     void Awake() { Instance = this; }
 
     public async Task SignInAnonymouslyIfNeeded() {
@@ -26,61 +32,64 @@ public class AuthenticationManager : MonoBehaviour {
     }
 
     public void SignOut() {
-        if (!IsLoggedIn && FirebaseInitializationManager.Instance?.Auth?.CurrentUser == null) {
-            return;
-        }
-        Debug.Log("Signing out from all services...");
-        if (AuthenticationService.Instance.IsSignedIn) {
-            try {
-                AuthenticationService.Instance.SignOut();
-                Debug.Log("UGS signed out.");
-            } catch (Exception e) {
-                Debug.LogError($"UGS sign out failed: {e}");
-            }
-        }
-#if !UNITY_EDITOR
-        try {
-            if (GoogleSignInProvider.Instance != null) {
-                GoogleSignInProvider.Instance.SignOut();
-            }
-        } catch (Exception e) {
-            Debug.LogError($"Google sign out failed: {e}");
-        }
-        try {
-            if (FirebaseInitializationManager.Instance?.Auth?.CurrentUser != null) {
-                FirebaseInitializationManager.Instance.Auth.SignOut();
-                Debug.Log("Firebase Auth signed out.");
-            }
-        } catch (Exception e) {
-            Debug.LogError($"Firebase Auth sign out failed: {e}");
-        }
-#endif
-    }
-
-    public async Task<bool> LinkWithGoogleAsync() {
-        if (!IsLoggedIn) {
-            Debug.LogError("UGSにサインインしていません。Googleアカウントの連携はできません。");
-            return false;
-        }
-        try {
-            bool firebaseSuccess = await FirebaseInitializationManager.Instance.InitializeFirebaseIfNeeded();
-            if (!firebaseSuccess) { throw new Exception("Firebase Initialization Failed on demand."); }
-            string idToken = await GoogleSignInProvider.Instance.GetGoogleIdTokenAsync();
-            if (string.IsNullOrEmpty(idToken)) { return false; }
-            await AuthenticationService.Instance.LinkWithGoogleAsync(idToken);
-            Debug.Log("Googleアカウントの連携に成功しました。");
-            return true;
-        }
-        catch (AuthenticationException ex) when (ex.ErrorCode == AuthenticationErrorCodes.AccountAlreadyLinked) {
-            Debug.LogError("このGoogleアカウントは、すでに他のゲームアカウントに連携されています。");
-            return false;
-        }
-        catch (Exception e) {
-            Debug.LogError($"Googleアカウントの連携に失敗しました: {e}");
-            return false;
+        try{
+            AuthenticationService.Instance.SignOut();
+            GoogleSignInProvider.Instance.SignOutFromGoogle();
+            FirebaseInitializationManager.Instance.Auth.SignOut();
+        }catch (Exception e){
+            Debug.LogError($"Exception during SignOut: {e.Message}");
         }
     }
+// [AuthenticationManager.cs]
 
+// 連携結果を示すためのenumを定義
+public enum LinkResult {
+    Success,
+    AccountAlreadyLinked,
+    Cancelled,
+    Failed
+}
+
+// 戻り値を Task<LinkResult> に変更
+public async Task<LinkResult> LinkWithGoogleAsync()
+{
+    if (!IsLoggedIn) {
+        Debug.LogError("UGSにサインインしていません。");
+        return LinkResult.Failed;
+    }
+    
+    try {
+        bool firebaseSuccess = await FirebaseInitializationManager.Instance.InitializeFirebaseIfNeeded();
+        if (!firebaseSuccess) {
+            Debug.LogError("Firebase Initialization Failed on demand.");
+            return LinkResult.Failed;
+        }
+        string idToken = await GoogleSignInProvider.Instance.GetGoogleIdTokenAsync();
+        if (string.IsNullOrEmpty(idToken)) {
+            Debug.Log("Googleサインインがキャンセルされました。");
+            return LinkResult.Cancelled;
+        }
+        await AuthenticationService.Instance.LinkWithGoogleAsync(idToken);
+        Debug.Log("Googleアカウントの連携に成功しました。");
+        return LinkResult.Success;
+    } 
+    catch (AuthenticationException ex) when (ex.ErrorCode == AuthenticationErrorCodes.AccountAlreadyLinked) {
+        Debug.LogError("このGoogleアカウントは、すでに他のセーブデータに連携されています。");
+        GoogleSignInProvider.Instance.SignOutFromGoogle();
+        FirebaseInitializationManager.Instance.Auth.SignOut();
+        return LinkResult.AccountAlreadyLinked;
+    } 
+    catch (OperationCanceledException) {
+        Debug.Log("連携操作がキャンセルされました。");
+        return LinkResult.Cancelled;
+    } 
+    catch (Exception e) {
+        Debug.LogError($"Googleアカウントの連携に失敗しました: {e}");
+        GoogleSignInProvider.Instance.SignOutFromGoogle();
+        FirebaseInitializationManager.Instance.Auth.SignOut();
+        return LinkResult.Failed;
+    }
+}
     public async Task<bool> UnlinkFromGoogleAsync() {
         if (!IsLoggedIn) {
             Debug.LogError("UGSにサインインしていません。");
@@ -88,11 +97,8 @@ public class AuthenticationManager : MonoBehaviour {
         }
         try {
             await AuthenticationService.Instance.UnlinkGoogleAsync();
-            GoogleSignInProvider.Instance.SignOut();
-            if (FirebaseInitializationManager.Instance.Auth?.CurrentUser != null) {
-                FirebaseInitializationManager.Instance.Auth.SignOut();
-                Debug.Log("Firebase Auth signed out during unlink.");
-            }
+            GoogleSignInProvider.Instance.SignOutFromGoogle();
+            FirebaseInitializationManager.Instance.Auth.SignOut();
             Debug.Log("Googleアカウントとの連携を解除しました。");
             return true;
         } catch (Exception e) {
@@ -101,17 +107,28 @@ public class AuthenticationManager : MonoBehaviour {
         }
     }
 
-    public async Task<bool> SignInWithGoogleForRecoveryAsync() {
-        bool firebaseSuccess = await FirebaseInitializationManager.Instance.InitializeFirebaseIfNeeded();
-        if (!firebaseSuccess) { throw new Exception("Firebase Initialization Failed on demand."); }
-        string idToken = await GoogleSignInProvider.Instance.GetGoogleIdTokenAsync();
-        if (string.IsNullOrEmpty(idToken)) {
-            return false;
+    public async Task<RecoveryResult> SignInWithGoogleForRecoveryAsync() {
+        try {
+            bool firebaseSuccess = await FirebaseInitializationManager.Instance.InitializeFirebaseIfNeeded();
+            if (!firebaseSuccess) { throw new Exception("Firebase Initialization Failed on demand."); }
+
+            string idToken = await GoogleSignInProvider.Instance.GetGoogleIdTokenAsync();
+            if (string.IsNullOrEmpty(idToken)) {
+                throw new Exception("Failed to get Google ID Token. It might be cancelled or an error occurred.");
+            }
+
+            var options = new SignInOptions { CreateAccount = false };
+            await AuthenticationService.Instance.SignInWithGoogleAsync(idToken, options);
+                        return RecoveryResult.Success;
+
+        } catch (Exception ex) {
+            if (IsAccountNotFoundException(ex)) {
+                return RecoveryResult.AccountNotFound;
+            }
+            
+            Debug.LogError($"An unexpected error occurred during Google Sign-In for recovery: {ex}");
+            return RecoveryResult.Failure;
         }
-        var options = new SignInOptions { CreateAccount = false };
-        await AuthenticationService.Instance.SignInWithGoogleAsync(idToken, options);
-        Debug.Log($"Googleアカウントでのデータ引き継ぎに成功しました。 PlayerID: {AuthenticationService.Instance.PlayerId}");
-        return true;
     }
 
     public bool IsLinkedWithGoogle() {
@@ -125,13 +142,10 @@ public class AuthenticationManager : MonoBehaviour {
     }
 
     public bool IsAccountNotFoundException(Exception ex) {
-        var requestFailedException = ex as RequestFailedException;
-        if (requestFailedException != null) {
-            return requestFailedException.ErrorCode == 404;
-        }
-        var authException = ex as AuthenticationException;
-        if (authException != null) {
-            return authException.ErrorCode == 1009;
+        if (ex is RequestFailedException reqEx) {
+            string msg = reqEx.Message ?? string.Empty;
+            if (msg.IndexOf("user not found", StringComparison.OrdinalIgnoreCase) >= 0) return true;
+            if (msg.IndexOf("RESOURCE_NOT_FOUND", StringComparison.OrdinalIgnoreCase) >= 0) return true;
         }
         return false;
     }

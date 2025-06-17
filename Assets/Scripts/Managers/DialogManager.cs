@@ -4,6 +4,7 @@ using DG.Tweening;
 using TMPro;
 using System;
 using System.Collections.Generic;
+using Unity.Services.Authentication;
 
 public class DialogManager : MonoBehaviour {
     public static DialogManager Instance { get; private set; }
@@ -113,7 +114,9 @@ public class DialogManager : MonoBehaviour {
 
         okButtonActions[frameInstance] = async () => {
             GameFlowManager.Instance.SetLoadingScreenActive(true);
-            
+            if (AuthenticationManager.Instance.IsLinkedWithGoogle()){
+                await AuthenticationService.Instance.UnlinkGoogleAsync();
+            }
             bool wipeSuccess = await CloudSaveManager.Instance.ExecuteFullDataWipeAsync();
             AuthenticationManager.Instance.SignOut();
 

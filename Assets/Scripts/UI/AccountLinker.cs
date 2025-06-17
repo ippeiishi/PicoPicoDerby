@@ -1,6 +1,7 @@
 // AccountLinker.cs
 using UnityEngine;
 using TMPro;
+using System;
 
 public class AccountLinker : MonoBehaviour {
     [Header("State Contents")]
@@ -22,19 +23,32 @@ public class AccountLinker : MonoBehaviour {
         bool isLinked = AuthenticationManager.Instance.IsLinkedWithGoogle();
         contentUnlinked.SetActive(!isLinked);
         contentLinked.SetActive(isLinked);
-    }
+    }// [AccountLinker.cs]
+// [AccountLinker.cs]
 
-    public void OnLinkButtonPress() {
-        _ = RequestHandler.FromUI(async () => {
-            bool success = await AuthenticationManager.Instance.LinkWithGoogleAsync();
-            if (success) {
-                statusText.text ="<color=#28a745>連携が完了しました。</color>";
+public void OnLinkButtonPress() {
+    _ = RequestHandler.FromUI(async () => {
+        // AuthenticationManagerからの戻り値を受け取る
+        var result = await AuthenticationManager.Instance.LinkWithGoogleAsync();
+
+        // 結果に応じてUIを更新
+        switch (result) {
+            case AuthenticationManager.LinkResult.Success:
+                statusText.text = "<color=#28a745>連携が完了しました。</color>";
                 UpdateUIState();
-            } else {
-                statusText.text ="<color=red>連携に失敗しました。</color>";
-            }
-        });
-    }
+                break;
+            case AuthenticationManager.LinkResult.AccountAlreadyLinked:
+                statusText.text = "<color=red>選択したGoogleアカウントは別のセーブデータに連携済みです。</color>";
+                break;
+            case AuthenticationManager.LinkResult.Cancelled:
+                statusText.text = "連携がキャンセルされました。";
+                break;
+            case AuthenticationManager.LinkResult.Failed:
+                statusText.text = "<color=red>連携に失敗しました。</color>";
+                break;
+        }
+    });
+}
 
     public void OnUnlinkButtonPress() {
         _ = RequestHandler.FromUI(async () => {

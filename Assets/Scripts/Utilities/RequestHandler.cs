@@ -1,4 +1,4 @@
-// RequestHandler.cs (新規作成)
+// RequestHandler.cs
 using System;
 using System.Threading.Tasks;
 
@@ -9,6 +9,7 @@ public static class RequestHandler {
     /// </summary>
     /// <param name="requestFunc">実行する非同期の通信処理</param>
     public static async Task FromUI(Func<Task> requestFunc) {
+        // NetworkCheckerがダイアログ表示まで行うので、その動作を尊重する
         if (!NetworkChecker.IsOnline()) { return; }
         
         GameFlowManager.Instance.SetLoadingScreenActive(true);
@@ -17,8 +18,7 @@ public static class RequestHandler {
             await requestFunc();
         }
         catch (Exception e) {
-            // ここで共通のエラー処理を行うことも可能
-            // 例: UIActionDispatcher.Instance.DispatchOpenRequest("ServerError", null);
+            UIActionDispatcher.Instance.DispatchOpenRequest("ServerError", null);
             UnityEngine.Debug.LogError($"RequestHandler caught an exception: {e}");
         }
         finally {
