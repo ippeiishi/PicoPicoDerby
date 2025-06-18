@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using System;
 using System.Threading.Tasks;
 using static AuthenticationManager;
 
@@ -57,40 +58,40 @@ public class FirstLaunchFlowController : MonoBehaviour {
         _ = ContinueFlowAsync();
     }
 
-    private async Task ContinueFlowAsync() {
-        if (!NetworkChecker.IsOnline()) { return; }
+    private Task ContinueFlowAsync() {
+        return RequestHandler.FromUI(async () => {
+            RecoveryResult result = await AuthenticationManager.Instance.SignInWithGoogleForRecoveryAsync();
 
-        GameFlowManager.Instance.SetLoadingScreenActive(true);
-
-        RecoveryResult result = await AuthenticationManager.Instance.SignInWithGoogleForRecoveryAsync();
-
-        switch (result) {
-            case RecoveryResult.Success:
-                _ = RequestHandler.FromUI(async () => {
+            switch (result) {
+                case RecoveryResult.Success:
                     await RemoteConfigManager.Instance.FetchConfigsAsync();
                     await CloudSaveManager.Instance.UpdateDeviceIDAfterRecoveryAsync();
                     CloudSaveManager.Instance.SetFirstLaunchCompleted();
+
+                    // ユーザー名を取得し、Welcome画面に切り替える
+                    string username = CloudSaveManager.Instance.CurrentPlayerData.username;
+                    welcomeMessageText.text = $"{username}さん、おかえりなさい！";
+                    SwitchState(FlowState.Welcome);
                     GameFlowManager.Instance.NotifyFirstLaunchComplete();
-                    OnCloseButtonPressed();
-                });
-                break;
+                    break;
 
-            case RecoveryResult.AccountNotFound:
-                GameFlowManager.Instance.SetLoadingScreenActive(false);
-                AuthenticationManager.Instance.SignOut();
-                DialogManager.Instance.ShowErrorDialog(
-                    "データが見つかりません", 
-                    "このGoogleアカウントに紐づくゲームデータが見つかりませんでした。",
-                    "UI/Dialogs/Contents/Content_Footer_BackToTitle"
-                );
-                break;
+                case RecoveryResult.AccountNotFound:
+                    GameFlowManager.Instance.SetLoadingScreenActive(false);
+                    AuthenticationManager.Instance.SignOut();
+                    DialogManager.Instance.ShowErrorDialog(
+                        "データが見つかりません",
+                        "このGoogleアカウントに紐づくゲームデータが見つかりませんでした。",
+                        "UI/Dialogs/Contents/Content_Footer_BackToTitle"
+                    );
+                    break;
 
-            case RecoveryResult.Failure:
-                GameFlowManager.Instance.SetLoadingScreenActive(false);
-                AuthenticationManager.Instance.SignOut();
-                UIActionDispatcher.Instance.DispatchOpenRequest("ServerError", null);
-                break;
-        }
+                case RecoveryResult.Failure:
+                    GameFlowManager.Instance.SetLoadingScreenActive(false);
+                    AuthenticationManager.Instance.SignOut();
+                    UIActionDispatcher.Instance.DispatchOpenRequest("ServerError", null);
+                    break;
+            }
+        });
     }
 
     public void OnConfirmCreateDataButtonPressed() {
@@ -98,15 +99,15 @@ public class FirstLaunchFlowController : MonoBehaviour {
             string username = usernameInputField.text.Trim();
             if (string.IsNullOrEmpty(username)) {
                 Debug.LogWarning("Username is empty.");
-                return; 
+                return;
             }
-             await AuthenticationManager.Instance.SignInAnonymouslyIfNeeded();
-                    await RemoteConfigManager.Instance.FetchConfigsAsync();
+            await AuthenticationManager.Instance.SignInAnonymouslyIfNeeded();
+            await RemoteConfigManager.Instance.FetchConfigsAsync();
             string initialDataJson = RemoteConfigManager.Instance.DefaultPlayerDataJson;
             await CloudSaveManager.Instance.CreateAndSaveInitialDataAsync(username, initialDataJson);
             CloudSaveManager.Instance.SetFirstLaunchCompleted();
             welcomeMessageText.text = $"{username}さん、ようこそ！";
-            SwitchState(FlowState.Welcome);   
+            SwitchState(FlowState.Welcome);
             GameFlowManager.Instance.NotifyFirstLaunchComplete();
         });
     }
