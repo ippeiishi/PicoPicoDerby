@@ -53,7 +53,7 @@ public class DialogManager : MonoBehaviour {
             switch (targetName) {
                 case "NetworkError": ShowErrorDialog("ネットワークエラー", "インターネットに接続できませんでした。接続を確認して、もう一度お試しください。"); break;
                 case "ServerError": ShowErrorDialog("サーバーエラー", "サーバーとの通信に失敗しました。時間をおいてから、もう一度お試しください。"); break;
-                case "DeviceConflictError": ShowErrorDialog("エラー", "このアカウントは他の端末で利用されています。タイトルに戻ります。"); break;
+                case "DeviceConflictError": ShowErrorDialog("お知らせ", "新しい端末へのセーブデータの移行を確認しました。この端末ではこれ以上プレイできません。"); break;
                 case "DataNotFoundError": ShowErrorDialog("エラー", "セーブデータの取得に失敗しました。タイトルに戻ります。"); break;
             }
         }

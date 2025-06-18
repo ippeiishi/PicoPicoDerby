@@ -18,11 +18,13 @@ public class GameFlowManager : MonoBehaviour {
     [SerializeField] private TextMeshProUGUI moneyText;
     [SerializeField] private TextMeshProUGUI gemText;
 
+    private bool _isConflictCheckInProgress = false;
+
     void Awake() {
         Instance = this;
-        titleScreen?.SetActive(true);
-        loadingScreen?.SetActive(false);
-        header?.SetActive(false);
+        titleScreen.SetActive(true);
+        loadingScreen.SetActive(false);
+        header.SetActive(false);
     }
 
     void Start() {
@@ -37,14 +39,31 @@ public class GameFlowManager : MonoBehaviour {
 
     private void OnApplicationQuit() {
         if (AuthenticationManager.Instance.IsLoggedIn) {
-            _ = CloudSaveManager.Instance.SaveDataToCloudAsync();
-            Debug.Log("OnApplicationQuit: Save process initiated.");
+            _ = CheckConflictAndSaveOnQuit();
+        }
+    }
+
+    private async Task CheckConflictAndSaveOnQuit() {
+        if (_isConflictCheckInProgress) { return; }
+        _isConflictCheckInProgress = true;
+
+        try {
+            bool conflict = await CloudSaveManager.Instance.CheckForDeviceConflictAsync();
+            if (!conflict) {
+                await CloudSaveManager.Instance.SaveDataToCloudAsync();
+                Debug.Log("OnApplicationQuit: Save process initiated and completed.");
+            } else {
+                Debug.LogWarning("OnApplicationQuit: Device conflict detected. Data will not be saved.");
+            }
+        } catch (Exception e) {
+            Debug.LogError($"OnApplicationQuit: Error during pre-save conflict check: {e.Message}");
+        } finally {
+            _isConflictCheckInProgress = false;
         }
     }
 
     private void HandleGameFlowAction(string actionName) {
         if (actionName == "StartFlow") {
-            // OnTitleScreenPressedはRequestHandlerを使うので、ここから直接呼び出す
             _ = OnTitleScreenPressed();
         }
     }
@@ -55,9 +74,7 @@ public class GameFlowManager : MonoBehaviour {
         } else if (actionName == "SaveDataToCloud") {
             _ = ExecuteManualSave();
         } else if (actionName == "OpenAccountSettings") {
-            if (accountSettingsDialog != null) {
-                DialogManager.Instance.AnimatePopupOpen(accountSettingsDialog);
-            }
+            DialogManager.Instance.AnimatePopupOpen(accountSettingsDialog);
         }
     }
 
@@ -68,17 +85,18 @@ public class GameFlowManager : MonoBehaviour {
             
             if (CloudSaveManager.Instance.HasCompletedFirstLaunch()) {
                  await AuthenticationManager.Instance.SignInAnonymouslyIfNeeded();
-                        await RemoteConfigManager.Instance.FetchConfigsAsync();
+                 
                 bool conflict = await CloudSaveManager.Instance.CheckForDeviceConflictAsync();
                 if (conflict) {
                     UIActionDispatcher.Instance.DispatchOpenRequest("DeviceConflictError", null);
                     return;
                 }
 
+                await RemoteConfigManager.Instance.FetchConfigsAsync();
                 bool loadSuccess = await CloudSaveManager.Instance.LoadDataFromCloudAsync();
                 if (loadSuccess) {
-                    titleScreen?.SetActive(false);
-                    header?.SetActive(true);
+                    titleScreen.SetActive(false);
+                    header.SetActive(true);
                     UpdateHeaderUI();
                 } else {
                     UIActionDispatcher.Instance.DispatchOpenRequest("DataNotFoundError", null);
@@ -90,19 +108,19 @@ public class GameFlowManager : MonoBehaviour {
     }
  
     public void NotifyFirstLaunchComplete() {
-        titleScreen?.SetActive(false);
-        header?.SetActive(true);
+        titleScreen.SetActive(false);
+        header.SetActive(true);
         UpdateHeaderUI();
     }
 
     private void ReloadCurrentScene() {
-    Debug.Log("Reloading current scene!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        Debug.Log("Reloading current scene!!!!!!!!!!!!!!!!!!!!!!!!!!");
         AuthenticationManager.Instance.SignOut();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
     
     public void SetLoadingScreenActive(bool isActive) {
-        loadingScreen?.SetActive(isActive);
+        loadingScreen.SetActive(isActive);
     }
 
     private void UpdateHeaderUI() {
@@ -114,6 +132,12 @@ public class GameFlowManager : MonoBehaviour {
 
     private Task ExecuteManualSave() {
         return RequestHandler.FromUI(async () => {
+            bool conflict = await CloudSaveManager.Instance.CheckForDeviceConflictAsync();
+            if (conflict) {
+                UIActionDispatcher.Instance.DispatchOpenRequest("DeviceConflictError", null);
+                return;
+            }
+
             await CloudSaveManager.Instance.SaveDataToCloudAsync();
             string okFooterPath = "UI/Dialogs/Contents/Content_Footer_OK";
             DialogManager.Instance.ShowErrorDialog("セーブ完了", "ゲームデータをクラウドに保存しました。", okFooterPath);

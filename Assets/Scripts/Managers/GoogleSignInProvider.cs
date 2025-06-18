@@ -10,46 +10,33 @@ public class GoogleSignInProvider : MonoBehaviour {
     private string _cachedIdToken = null;
     private GoogleSignInConfiguration configuration;
 
-    void Awake()
-    {
+    void Awake() {
         Instance = this;
-        configuration = new GoogleSignInConfiguration
-        {
+        configuration = new GoogleSignInConfiguration {
             WebClientId = WebClientId,
             RequestIdToken = true,
         };
         GoogleSignIn.Configuration = configuration;
-        GoogleSignIn.Configuration.UseGameSignIn = false; // 通常サインイン
+        GoogleSignIn.Configuration.UseGameSignIn = false;
     }
-    
-    
 
-    public async Task<string> GetGoogleIdTokenAsync()
-    {
-        if (!string.IsNullOrEmpty(_cachedIdToken)){
-            return _cachedIdToken;
-        }
+    public async Task<string> GetGoogleIdTokenAsync() {
+        if (!string.IsNullOrEmpty(_cachedIdToken)) { return _cachedIdToken; }
         Debug.Log("Google サインインの処理を開始します…");
 
         try {
             GoogleSignInUser googleUser = await GoogleSignIn.DefaultInstance.SignIn();
 
-            if (googleUser != null && !string.IsNullOrEmpty(googleUser.IdToken))
-            {
+            if (googleUser != null && !string.IsNullOrEmpty(googleUser.IdToken)) {
                 Debug.Log("Google ID トークンの取得に成功しました。");
                 _cachedIdToken = googleUser.IdToken;
                 return googleUser.IdToken;
-            }
-            else
-            {
+            } else {
                 Debug.LogWarning("Google サインインはキャンセルされたか、ID トークンが取得できませんでした。");
                 return null;
             }
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Debug.LogError($"Google サインイン処理中にエラーが発生しました: {e}");
-            // エラーが発生した場合もnullを返し、呼び出し元で汎用エラーとして処理させる
             return null;
         }
     }
