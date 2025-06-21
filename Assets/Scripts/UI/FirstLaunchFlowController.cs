@@ -65,12 +65,11 @@ public class FirstLaunchFlowController : MonoBehaviour {
             switch (result) {
                 case RecoveryResult.Success:
                     await RemoteConfigManager.Instance.FetchConfigsAsync();
-                    await CloudSaveManager.Instance.UpdateDeviceIDAfterRecoveryAsync();
-                    CloudSaveManager.Instance.SetFirstLaunchCompleted();
+                    await DataManager.Instance.UpdateDeviceIDAfterRecoveryAsync();
+                    DataManager.Instance.SetFirstLaunchCompleted();
 
-                    // ユーザー名を取得し、Welcome画面に切り替える
-                    string username = CloudSaveManager.Instance.CurrentPlayerData.username;
-                    welcomeMessageText.text = $"{username}さん、おかえりなさい！";
+                    string ownerName = DataManager.Instance.OwnerName;
+                    welcomeMessageText.text = $"{ownerName}さん、おかえりなさい！";
                     SwitchState(FlowState.Welcome);
                     GameFlowManager.Instance.NotifyFirstLaunchComplete();
                     break;
@@ -103,9 +102,12 @@ public class FirstLaunchFlowController : MonoBehaviour {
             }
             await AuthenticationManager.Instance.SignInAnonymouslyIfNeeded();
             await RemoteConfigManager.Instance.FetchConfigsAsync();
-            string initialDataJson = RemoteConfigManager.Instance.DefaultPlayerDataJson;
-            await CloudSaveManager.Instance.CreateAndSaveInitialDataAsync(username, initialDataJson);
-            CloudSaveManager.Instance.SetFirstLaunchCompleted();
+            
+            // DataManagerの新しいメソッドを呼び出す
+            // 現状、familyNameはUIにないため空文字を渡す。将来的には入力フィールドを追加する必要がある。
+            await DataManager.Instance.CreateAndSaveInitialDataAsync(username, ""); 
+            
+            DataManager.Instance.SetFirstLaunchCompleted();
             welcomeMessageText.text = $"{username}さん、ようこそ！";
             SwitchState(FlowState.Welcome);
             GameFlowManager.Instance.NotifyFirstLaunchComplete();

@@ -48,9 +48,9 @@ public class GameFlowManager : MonoBehaviour {
         _isConflictCheckInProgress = true;
 
         try {
-            bool conflict = await CloudSaveManager.Instance.CheckForDeviceConflictAsync();
+            bool conflict = await DataManager.Instance.CheckForDeviceConflictAsync();
             if (!conflict) {
-                await CloudSaveManager.Instance.SaveDataToCloudAsync();
+                await DataManager.Instance.SaveOwnerDataAsync();
                 Debug.Log("OnApplicationQuit: Save process initiated and completed.");
             } else {
                 Debug.LogWarning("OnApplicationQuit: Device conflict detected. Data will not be saved.");
@@ -83,17 +83,17 @@ public class GameFlowManager : MonoBehaviour {
             bool ugsSuccess = await UGSInitializationManager.Instance.InitializeUGSIfNeeded();
             if (!ugsSuccess) { throw new Exception("UGS Initialization Failed."); }
             
-            if (CloudSaveManager.Instance.HasCompletedFirstLaunch()) {
+            if (DataManager.Instance.HasCompletedFirstLaunch()) {
                  await AuthenticationManager.Instance.SignInAnonymouslyIfNeeded();
                  
-                bool conflict = await CloudSaveManager.Instance.CheckForDeviceConflictAsync();
+                bool conflict = await DataManager.Instance.CheckForDeviceConflictAsync();
                 if (conflict) {
                     UIActionDispatcher.Instance.DispatchOpenRequest("DeviceConflictError", null);
                     return;
                 }
 
                 await RemoteConfigManager.Instance.FetchConfigsAsync();
-                bool loadSuccess = await CloudSaveManager.Instance.LoadDataFromCloudAsync();
+                bool loadSuccess = await DataManager.Instance.LoadOwnerDataAsync();
                 if (loadSuccess) {
                     titleScreen.SetActive(false);
                     header.SetActive(true);
@@ -124,21 +124,21 @@ public class GameFlowManager : MonoBehaviour {
     }
 
     private void UpdateHeaderUI() {
-        if (CloudSaveManager.Instance.CurrentPlayerData == null) { return; }
-        PlayerData data = CloudSaveManager.Instance.CurrentPlayerData;
-        moneyText.text = data.money.ToString();
-        gemText.text = data.gem.ToString();
+        if (DataManager.Instance.OwnerData == null) { return; }
+        // DataManagerの公開プロパティを使用
+        moneyText.text = DataManager.Instance.Money.ToString();
+        gemText.text = DataManager.Instance.Gem.ToString();
     }
 
     private Task ExecuteManualSave() {
         return RequestHandler.FromUI(async () => {
-            bool conflict = await CloudSaveManager.Instance.CheckForDeviceConflictAsync();
+            bool conflict = await DataManager.Instance.CheckForDeviceConflictAsync();
             if (conflict) {
                 UIActionDispatcher.Instance.DispatchOpenRequest("DeviceConflictError", null);
                 return;
             }
 
-            await CloudSaveManager.Instance.SaveDataToCloudAsync();
+            await DataManager.Instance.SaveOwnerDataAsync();
             string okFooterPath = "UI/Dialogs/Contents/Content_Footer_OK";
             DialogManager.Instance.ShowErrorDialog("セーブ完了", "ゲームデータをクラウドに保存しました。", okFooterPath);
         });

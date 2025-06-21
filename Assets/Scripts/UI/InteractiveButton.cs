@@ -18,10 +18,10 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler
         if (nameParts.Length < 2) { return; }
         string soundType = nameParts[nameParts.Length - 1];
         switch (soundType) {
-            case "OK": AudioManager.i.PlayOKSe(); break;
-            case "Cancel": AudioManager.i.PlayCancelSe(); break;
-            case "Slide": case "SlideOut": AudioManager.i.PlayslideoutSe(); break;
-            default: AudioManager.i.PlayClickSe(); break;
+            case "OK": AudioManager.Instance.PlayOKSe(); break;
+            case "Cancel": AudioManager.Instance.PlayCancelSe(); break;
+            case "Slide": case "SlideOut": AudioManager.Instance.PlayslideoutSe(); break;
+            default: AudioManager.Instance.PlayClickSe(); break;
         }
     }
     // ------------------------------------

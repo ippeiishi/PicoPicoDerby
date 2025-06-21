@@ -68,7 +68,8 @@ public class DialogManager : MonoBehaviour {
         messageInstance.GetComponentInChildren<TextMeshProUGUI>().text = message;
     }
 
-    private void ShowSoundSettingsDialog(GameObject clickedButton) {
+    private void ShowSoundSettingsDialog(GameObject clickedButton)
+    {
         GameObject frameInstance = InstantiatePrefab(FRAME_PATH);
         GameObject contentInstance = InstantiatePrefab(CONTENTS_PATH + "Content_SoundSettings");
         GameObject footerInstance = InstantiatePrefab(CONTENTS_PATH + "Content_Footer_OK");
@@ -77,8 +78,8 @@ public class DialogManager : MonoBehaviour {
         Slider seSlider = contentInstance.transform.Find("SESlider").GetComponent<Slider>();
         bgmSlider.value = PlayerPrefs.GetFloat("BGMVolume", 1.0f);
         seSlider.value = PlayerPrefs.GetFloat("SEVolume", 1.0f);
-        bgmSlider.onValueChanged.AddListener(AudioManager.i.SetBGMVolume);
-        seSlider.onValueChanged.AddListener(AudioManager.i.SetSEVolume);
+        bgmSlider.onValueChanged.AddListener(AudioManager.Instance.SetBGMVolume);
+        seSlider.onValueChanged.AddListener(AudioManager.Instance.SetSEVolume);
 
         AssembleDialog(frameInstance, clickedButton, contentInstance, footerInstance);
     }
@@ -113,7 +114,7 @@ public class DialogManager : MonoBehaviour {
             if (AuthenticationManager.Instance.IsLinkedWithGoogle()) {
                 await AuthenticationService.Instance.UnlinkGoogleAsync();
             }
-            bool wipeSuccess = await CloudSaveManager.Instance.ExecuteFullDataWipeAsync();
+            bool wipeSuccess = await DataManager.Instance.ExecuteFullDataWipeAsync();
             AuthenticationManager.Instance.SignOut();
             GameFlowManager.Instance.SetLoadingScreenActive(false);
 
