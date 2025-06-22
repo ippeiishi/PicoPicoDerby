@@ -1,7 +1,7 @@
 using UnityEngine;
 using DG.Tweening;
 using UnityEngine.UI;
-using TMPro; // TextMeshProを使うために必要
+using TMPro;
 
 public class ModalManager : MonoBehaviour {
     [Header("UI Containers")]
@@ -15,7 +15,6 @@ public class ModalManager : MonoBehaviour {
 
     void Start() {
         if (UIActionDispatcher.Instance != null) {
-            // DialogManagerと同様に、GameObjectを受け取るイベントを購読する
             UIActionDispatcher.Instance.OnRequestOpen += HandleOpenRequest;
             UIActionDispatcher.Instance.OnRequestClose += HandleCloseRequest;
         }
@@ -28,10 +27,8 @@ public class ModalManager : MonoBehaviour {
         }
     }
 
-    // HandleOpenRequestがGameObjectを受け取るように変更
     private void HandleOpenRequest(string targetName, GameObject clickedButton) {
         if (targetName == "Menu") {
-            // メインメニューにはタイトルがないので、clickedButtonは不要
             AnimateSlideIn(menuModal, null); 
         } else {
             OpenSubModal(targetName, clickedButton);
@@ -42,9 +39,9 @@ public class ModalManager : MonoBehaviour {
         AnimateSlideOut(panelToClose);
     }
 
-    // OpenSubModalもGameObjectを受け取るように変更
     private void OpenSubModal(string targetName, GameObject clickedButton) {
-        string contentNameToFind = targetName.Replace("Modal", "Content");
+        string specificName = targetName.Replace("Modal", ""); // "OwnerInfo"
+string contentNameToFind = $"Content_{specificName}"; // "Content_OwnerInfo"
         Transform targetContent = subModalContentsParent.Find(contentNameToFind);
 
         if (targetContent != null) {
@@ -52,15 +49,15 @@ public class ModalManager : MonoBehaviour {
                 content.gameObject.SetActive(false);
             }
             targetContent.gameObject.SetActive(true);
-            // AnimateSlideInにclickedButtonを渡す
             AnimateSlideIn(subModalsContainer, clickedButton);
         }
     }
     
     private void AnimateSlideIn(GameObject target, GameObject clickedButton) {
         Transform panel = target.transform.Find("Panel_Menu") ?? target.transform.Find("Panel_Full");
+        if (panel == null) { return; }
+        
         Image bgImage = target.transform.Find("BG_Overlay")?.GetComponent<Image>();
-        if (panel == null) return;
         
         if (clickedButton != null) {
             var buttonText = clickedButton.transform.GetChild(0)?.GetComponent<TextMeshProUGUI>();
@@ -90,8 +87,9 @@ public class ModalManager : MonoBehaviour {
 
     private void AnimateSlideOut(GameObject target) {
         Transform panel = target.transform.Find("Panel_Menu") ?? target.transform.Find("Panel_Full");
+        if (panel == null) { return; }
+
         Image bgImage = target.transform.Find("BG_Overlay")?.GetComponent<Image>();
-        if (panel == null) return;
 
         var buttons = target.GetComponentsInChildren<Button>(true);
         foreach (var b in buttons) { b.interactable = false; }

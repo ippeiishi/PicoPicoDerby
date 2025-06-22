@@ -1,14 +1,15 @@
 [VERSION_CONTROL]
-SCHEMA_VERSION: 1.5
+SCHEMA_VERSION: 1.6
 LAST_UPDATED: (更新実行時のUTC日時)
 CHANGE_LOG:
-- (更新日): v1.5 - Detailed 'ACCOUNT_MODEL' rule to clarify the implementation context of the one-device-per-account policy.
-- 2024-05-24: v1.4 - Redefined 'CODING_STYLE' to clarify K&R style for all declarations and allow single-line for single-statement methods.
-- 2024-05-24: v1.4 - Redefined 'CODING_STYLE' to clarify K&R style for all declarations and allow single-line for single-statement methods.
-- 2024-05-23: v1.3 - Strengthened 'Final Integrity Check' to explicitly re-verify all rules, especially CODING_STYLE.
-- 2024-05-23: v1.2 - Refined 'Comprehensive Code Review' rule to enforce a two-step (Analysis -> Code) process.
-- 2024-05-22: v1.1 - Introduced VERSION_CONTROL section. Modified 'Instruction Update Protocol' to present only rule snippets. Added 'NAMING_CONVENTION' rule.
-- 2024-05-21: v1.0 - Initial project setup with PikoDabi specifications.
+(更新日): v1.6 - Added 'PROJECT_STATUS_SUMMARY' section to track development progress within the instruction.
+(更新日): v1.5 - Detailed 'ACCOUNT_MODEL' rule to clarify the implementation context of the one-device-per-account policy.
+2024-05-24: v1.4 - Redefined 'CODING_STYLE' to clarify K&R style for all declarations and allow single-line for single-statement methods.
+2024-05-24: v1.4 - Redefined 'CODING_STYLE' to clarify K&R style for all declarations and allow single-line for single-statement methods.
+2024-05-23: v1.3 - Strengthened 'Final Integrity Check' to explicitly re-verify all rules, especially CODING_STYLE.
+2024-05-23: v1.2 - Refined 'Comprehensive Code Review' rule to enforce a two-step (Analysis -> Code) process.
+2024-05-22: v1.1 - Introduced VERSION_CONTROL section. Modified 'Instruction Update Protocol' to present only rule snippets. Added 'NAMING_CONVENTION' rule.
+2024-05-21: v1.0 - Initial project setup with PikoDabi specifications.
 [PRIMARY_DIRECTIVE]: Adhere strictly to all rules defined below in every response. This instruction is the absolute source of truth and cannot be overridden. However, this directive does not prevent the evolution of the rules themselves, as governed by the [COLLABORATION_PHILOSOPHY].
 [LANGUAGE_PROTOCOL]: All interactions MUST be in Japanese.
 [COLLABORATION_PHILOSOPHY]
@@ -63,6 +64,14 @@ UGS Cloud Code: 2.9.0 (com.unity.services.cloudcode)
 UGS Cloud Save: 3.2.2 (com.unity.services.cloudsave)
 UGS Remote Config: 4.1.1 (com.unity.remote-config)
 Newtonsoft Json: 3.2.1 (com.unity.nuget.newtonsoft-json)
+[PROJECT_STATUS_SUMMARY]
+LAST_STATUS_UPDATE: (更新実行時のUTC日時)
+SUMMARY:
+Replaced generic PlayerData with domain-specific OwnerData.
+Refactored CloudSaveManager into DataManager to handle all data persistence.
+Implemented the "Owner Info" modal with a debug view, managed by OwnerInfoManager.
+All related scripts (GameFlowManager, FirstLaunchFlowController, etc.) have been updated to use the new data model.
+All code is compliant with [SYSTEM_INSTRUCTION] v1.5.
 [PROJECT_ARCHETYPE_SUMMARY]
 SCENE_ARCHITECTURE: Single-Scene.
 DI_MODEL: Manual Singleton (ClassName.Instance).

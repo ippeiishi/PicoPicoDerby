@@ -19,7 +19,7 @@ public class DialogManager : MonoBehaviour {
 
     void Awake() { Instance = this; }
     void Start() { UIActionDispatcher.Instance.OnRequestOpen += HandleOpenRequest; }
-    void OnDestroy() { UIActionDispatcher.Instance.OnRequestOpen -= HandleOpenRequest; }
+    void OnDestroy() { if (UIActionDispatcher.Instance != null) { UIActionDispatcher.Instance.OnRequestOpen -= HandleOpenRequest; } }
 
     public bool IsDynamicDialogObject(Transform objectTransform) {
         return objectTransform.IsChildOf(dialogsParent);
@@ -68,8 +68,7 @@ public class DialogManager : MonoBehaviour {
         messageInstance.GetComponentInChildren<TextMeshProUGUI>().text = message;
     }
 
-    private void ShowSoundSettingsDialog(GameObject clickedButton)
-    {
+    private void ShowSoundSettingsDialog(GameObject clickedButton) {
         GameObject frameInstance = InstantiatePrefab(FRAME_PATH);
         GameObject contentInstance = InstantiatePrefab(CONTENTS_PATH + "Content_SoundSettings");
         GameObject footerInstance = InstantiatePrefab(CONTENTS_PATH + "Content_Footer_OK");

@@ -3,17 +3,13 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(Button))]
-public class InteractiveButton : MonoBehaviour, IPointerClickHandler
-{
+public class InteractiveButton : MonoBehaviour, IPointerClickHandler {
     private Button button;
     private static UIActionDispatcher dispatcher;
     private static DialogManager dialogManager;
 
-    void Awake() {
-        button = GetComponent<Button>();
-    }
+    void Awake() { button = GetComponent<Button>(); }
 
-    // --- サウンド再生機能のみをここに追加 ---
     private void PlaySoundFromName(string[] nameParts) {
         if (nameParts.Length < 2) { return; }
         string soundType = nameParts[nameParts.Length - 1];
@@ -24,19 +20,14 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler
             default: AudioManager.Instance.PlayClickSe(); break;
         }
     }
-    // ------------------------------------
 
     public void OnPointerClick(PointerEventData eventData) {
-        if (!button.interactable) return;
+        if (!button.interactable) { return; }
 
         string[] parts = gameObject.name.Split('_');
-
-        // --- 追加したサウンド再生処理をここで呼び出す ---
         PlaySoundFromName(parts);
-        // ------------------------------------------
 
-        // ▼▼▼ ここから下は、あなたのオリジナルのコードを一切変更していません ▼▼▼
-        if (parts.Length < 2) return;
+        if (parts.Length < 2) { return; }
         string actionType = parts[1];
 
         if (dialogManager == null) {
@@ -61,6 +52,7 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler
                 break;
             case "Close":
             case "SlideOut":
+            Debug.Log($"Closing container for action type: {actionType}");
                 Transform container = transform.parent?.parent?.parent;
                 if (container != null) {
                     dispatcher.DispatchCloseRequest(container.gameObject, actionType);
