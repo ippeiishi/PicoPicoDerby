@@ -12,6 +12,7 @@ public class GameFlowManager : MonoBehaviour {
     [SerializeField] private GameObject loadingScreen;
     [SerializeField] private GameObject firstLaunchDialog;
     [SerializeField] private GameObject accountSettingsDialog;
+    [SerializeField] private GameObject lobbyScreen; // ★ 追加
 
     [Header("Header UI")]
     [SerializeField] private GameObject header;
@@ -25,6 +26,7 @@ public class GameFlowManager : MonoBehaviour {
         titleScreen.SetActive(true);
         loadingScreen.SetActive(false);
         header.SetActive(false);
+        lobbyScreen.SetActive(false); // ★ 追加
     }
 
     void Start() {
@@ -33,8 +35,10 @@ public class GameFlowManager : MonoBehaviour {
     }
 
     void OnDestroy() {
-        UIActionDispatcher.Instance.OnRequestGameFlowAction -= HandleGameFlowAction;
-        UIActionDispatcher.Instance.OnRequestSystemAction -= HandleSystemAction;
+        if (UIActionDispatcher.Instance != null) {
+            UIActionDispatcher.Instance.OnRequestGameFlowAction -= HandleGameFlowAction;
+            UIActionDispatcher.Instance.OnRequestSystemAction -= HandleSystemAction;
+        }
     }
 
     private void OnApplicationQuit() {
@@ -97,6 +101,7 @@ public class GameFlowManager : MonoBehaviour {
                 if (loadSuccess) {
                     titleScreen.SetActive(false);
                     header.SetActive(true);
+                    lobbyScreen.SetActive(true); // ★ 追加
                     UpdateHeaderUI();
                 } else {
                     UIActionDispatcher.Instance.DispatchOpenRequest("DataNotFoundError", null);
@@ -110,6 +115,7 @@ public class GameFlowManager : MonoBehaviour {
     public void NotifyFirstLaunchComplete() {
         titleScreen.SetActive(false);
         header.SetActive(true);
+        lobbyScreen.SetActive(true); // ★ 追加
         UpdateHeaderUI();
     }
 
@@ -125,7 +131,6 @@ public class GameFlowManager : MonoBehaviour {
 
     private void UpdateHeaderUI() {
         if (DataManager.Instance.OwnerData == null) { return; }
-        // DataManagerの公開プロパティを使用
         moneyText.text = DataManager.Instance.Money.ToString();
         gemText.text = DataManager.Instance.Gem.ToString();
     }
