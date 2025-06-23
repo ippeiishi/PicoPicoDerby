@@ -8,26 +8,21 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler {
     private static UIActionDispatcher dispatcher;
     private static DialogManager dialogManager;
 
-    void Awake() { button = GetComponent<Button>(); }
-
-    private void PlaySoundFromName(string[] nameParts) {
-        if (nameParts.Length < 2) { return; }
-        string soundType = nameParts[nameParts.Length - 1];
-        switch (soundType) {
-            case "OK": AudioManager.Instance.PlayOKSe(); break;
-            case "Cancel": AudioManager.Instance.PlayCancelSe(); break;
-            case "Slide": case "SlideOut": AudioManager.Instance.PlayslideoutSe(); break;
-            default: AudioManager.Instance.PlayClickSe(); break;
-        }
+    void Awake() {
+        button = GetComponent<Button>();
     }
 
     public void OnPointerClick(PointerEventData eventData) {
-        if (!button.interactable) { return; }
+        if (!button.interactable) {
+            return;
+        }
 
         string[] parts = gameObject.name.Split('_');
-        PlaySoundFromName(parts);
+        // ★ サウンド再生ロジックを削除
 
-        if (parts.Length < 2) { return; }
+        if (parts.Length < 2) {
+            return;
+        }
         string actionType = parts[1];
 
         if (dialogManager == null) {
@@ -52,7 +47,7 @@ public class InteractiveButton : MonoBehaviour, IPointerClickHandler {
                 break;
             case "Close":
             case "SlideOut":
-            Debug.Log($"Closing container for action type: {actionType}");
+                Debug.Log($"Closing container for action type: {actionType}");
                 Transform container = transform.parent?.parent?.parent;
                 if (container != null) {
                     dispatcher.DispatchCloseRequest(container.gameObject, actionType);

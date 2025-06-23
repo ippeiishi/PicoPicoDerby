@@ -188,7 +188,7 @@ GameObject:
   - component: {fileID: 3598999745766827237}
   - component: {fileID: 7863568360736050224}
   m_Layer: 5
-  m_Name: Btn_System_ReloadScene_Default
+  m_Name: Btn_System_ReloadScene_OK
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

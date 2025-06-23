@@ -6,15 +6,17 @@ using uPalette.Runtime.Core;
 using System.Collections.Generic;
 
 public class LobbyManager : MonoBehaviour {
+    // ★変更点: ヘッダーのコメントをより正確な "Stage Modes" に変更
+    [Header("Stage Modes")] 
+    // ★変更点: 変数名をContentからModeに変更し、参照先をMode_オブジェクトにする
+    [SerializeField] private GameObject modeTraining;
+    [SerializeField] private GameObject modeLegend;
+    [SerializeField] private GameObject modeCustomRace;
+
     [Header("Tab Buttons")]
     [SerializeField] private Button trainingModeTab;
     [SerializeField] private Button legendModeTab;
     [SerializeField] private Button customRaceTab;
-
-    [Header("Content Panels")]
-    [SerializeField] private GameObject trainingModeContent;
-    [SerializeField] private GameObject legendModeContent;
-    [SerializeField] private GameObject customRaceContent;
 
     private Color selectedBgColor;
     private Color selectedTextColor;
@@ -55,19 +57,20 @@ public class LobbyManager : MonoBehaviour {
         legendModeTab.onClick.AddListener(() => OnTabSelected(legendModeTab));
         customRaceTab.onClick.AddListener(() => OnTabSelected(customRaceTab));
 
-        // ★イベント購読
-        TransitionManager.Instance.OnTransitionStart += OnTransitionStart;
-        TransitionManager.Instance.OnTransitionEnd += OnTransitionEnd;
+        if (TransitionManager.Instance != null) {
+            TransitionManager.Instance.OnTransitionStart += OnTransitionStart;
+            TransitionManager.Instance.OnTransitionEnd += OnTransitionEnd;
+        }
 
         currentSelectedTab = trainingModeTab;
-        trainingModeContent.SetActive(true);
-        legendModeContent.SetActive(false);
-        customRaceContent.SetActive(false);
+        // ★変更点: 初期表示をModeオブジェクトに
+        modeTraining.SetActive(true);
+        modeLegend.SetActive(false);
+        modeCustomRace.SetActive(false);
         UpdateAllTabVisuals(currentSelectedTab);
     }
 
     void OnDestroy() {
-        // ★イベント購読解除
         if (TransitionManager.Instance != null) {
             TransitionManager.Instance.OnTransitionStart -= OnTransitionStart;
             TransitionManager.Instance.OnTransitionEnd -= OnTransitionEnd;
@@ -81,12 +84,12 @@ public class LobbyManager : MonoBehaviour {
         
         currentSelectedTab = selectedButton;
 
-        // ボタンの無効化/有効化はイベント経由に任せる
         TransitionManager.Instance.Play(
             onTransitionMidpoint: () => {
-                trainingModeContent.SetActive(selectedButton == trainingModeTab);
-                legendModeContent.SetActive(selectedButton == legendModeTab);
-                customRaceContent.SetActive(selectedButton == customRaceTab);
+                // ★変更点: 切り替え対象をModeオブジェクトに
+                modeTraining.SetActive(selectedButton == trainingModeTab);
+                modeLegend.SetActive(selectedButton == legendModeTab);
+                modeCustomRace.SetActive(selectedButton == customRaceTab);
                 UpdateAllTabVisuals(selectedButton);
             }
         );

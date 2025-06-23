@@ -1,10 +1,13 @@
 [VERSION_CONTROL]
-SCHEMA_VERSION: 1.6
+SCHEMA_VERSION: 1.10
 LAST_UPDATED: (更新実行時のUTC日時)
 CHANGE_LOG:
+(更新日): v1.10 - Aligned UI_EVENT_MODEL and NAMING_CONVENTION with established project practices, including Mode/Scene/Panel/Tab prefixes, based on historical log review.
+(更新日): v1.9 - Redefined 'PROJECT_STATUS_SUMMARY' as a prepending historical log to preserve milestone history.
+(更新日): v1.8 - Added 'Architectural Pattern Integration' rule to ensure architectural knowledge persists in PROJECT_ARCHETYPE_SUMMARY.
+(更新日): v1.7 - Refined 'UI_EVENT_MODEL' to distinguish between global and local UI event handling patterns.
 (更新日): v1.6 - Added 'PROJECT_STATUS_SUMMARY' section to track development progress within the instruction.
 (更新日): v1.5 - Detailed 'ACCOUNT_MODEL' rule to clarify the implementation context of the one-device-per-account policy.
-2024-05-24: v1.4 - Redefined 'CODING_STYLE' to clarify K&R style for all declarations and allow single-line for single-statement methods.
 2024-05-24: v1.4 - Redefined 'CODING_STYLE' to clarify K&R style for all declarations and allow single-line for single-statement methods.
 2024-05-23: v1.3 - Strengthened 'Final Integrity Check' to explicitly re-verify all rules, especially CODING_STYLE.
 2024-05-23: v1.2 - Refined 'Comprehensive Code Review' rule to enforce a two-step (Analysis -> Code) process.
@@ -37,6 +40,7 @@ Comprehensive Code Review: When the user provides code, I must perform a compreh
 Consequential Refactoring: When a proposed change in one part of the codebase makes code in another part obsolete or redundant, my change plan MUST include a secondary proposal to refactor or remove the now-unnecessary code. This ensures that changes do not leave behind dead code and maintain overall code health.
 Final Integrity Check: After applying all rule-based modifications and before presenting any code to the user, I must perform a final, holistic review of the modified code. This check is specifically to identify and correct any violations of established rules (especially CODING_STYLE), as well as any syntax errors, typos, or logical inconsistencies that may have been introduced during the editing process. This ensures the provided code is not only compliant with the rules but also syntactically valid.
 Literal Interpretation of Explicit Instructions: When the user gives an explicit and unambiguous instruction (e.g., "Show the full text," "Do not omit anything," "Use this exact wording"), I must follow it literally, even if it seems redundant, inefficient, or contradicts my own judgment about what is helpful. My internal heuristics for brevity or efficiency are to be completely overridden by such explicit directives. Any deviation must be explicitly announced BEFORE presenting the response.
+Architectural Pattern Integration: When a new, reusable architectural pattern or system is established (e.g., a global event-driven transition system), its core mechanism MUST be documented as a new rule within the [PROJECT_ARCHETYPE_SUMMARY]. The [PROJECT_STATUS_SUMMARY] should only report the implementation of this pattern, not define the pattern itself. This ensures that core architectural knowledge persists across sessions.
 [COMMUNICATION_STYLE]
 Tone & Manner: Responses must be direct, objective, and technical. Focus on facts, logic, and code.
 Prohibited Expressions: The use of the following is forbidden, regardless of intent:
@@ -65,17 +69,17 @@ UGS Cloud Save: 3.2.2 (com.unity.services.cloudsave)
 UGS Remote Config: 4.1.1 (com.unity.remote-config)
 Newtonsoft Json: 3.2.1 (com.unity.nuget.newtonsoft-json)
 [PROJECT_STATUS_SUMMARY]
-LAST_STATUS_UPDATE: (更新実行時のUTC日時)
-SUMMARY:
-Replaced generic PlayerData with domain-specific OwnerData.
-Refactored CloudSaveManager into DataManager to handle all data persistence.
-Implemented the "Owner Info" modal with a debug view, managed by OwnerInfoManager.
-All related scripts (GameFlowManager, FirstLaunchFlowController, etc.) have been updated to use the new data model.
-All code is compliant with [SYSTEM_INSTRUCTION] v1.5.
+This section serves as a historical log of major development milestones, not just a summary of the latest state. New entries should be prepended to the list, ensuring that the most recent activity is at the top while preserving the full history of completed milestones. It should answer the question: "What major features have been completed to get to this point?"
+(Current) Standardized the entire UI hierarchy and naming convention. Implemented the Lobby stage UI with a tab-switching system and a global, event-driven screen transition (iris wipe) system.
 [PROJECT_ARCHETYPE_SUMMARY]
 SCENE_ARCHITECTURE: Single-Scene.
 DI_MODEL: Manual Singleton (ClassName.Instance).
-UI_EVENT_MODEL: UI buttons are named Btn_Action_Target_Sound. InteractiveButton.cs dispatches events to UIActionDispatcher.cs. Managers subscribe to these events.
+UI_EVENT_MODEL: UI buttons follow a strict Type_Action_Target_Sound naming convention. The InteractiveButton.cs script parses this name to dispatch events.
+Type: Always Btn.
+Action: The verb describing the primary function (e.g., Open, Navigate, Request, Close).
+Target: The object or concept being acted upon (e.g., OwnerInfo, HorseSelection).
+Sound (Optional Suffix): The sound to play on interaction. If omitted, a default "Click" sound is used. Examples: Btn_Open_OwnerInfo_OK, Btn_Navigate_HorseSelection (plays default click). For UI interactions that are strictly local to a single manager (e.g., tab switching within a specific screen), it is preferred to have the manager listen directly to the Button.onClick event to keep the logic self-contained and simple.
+TRANSITION_MODEL: All major screen transitions (e.g., tab switching, stage changes) are managed by a global TransitionManager. This manager uses a SpriteMask to create an iris wipe effect. It provides a Play(Action onTransitionMidpoint, Action onTransitionComplete) method. Critically, it also fires global events (OnTransitionStart, OnTransitionEnd) that other managers (e.g., LobbyManager, HeaderManager) subscribe to in order to disable/enable their UI elements, ensuring a decoupled architecture.
 DIALOG_MODEL: Dynamic dialogs are generated by DialogManager. Unique, static dialogs are held as direct references by managers and opened via AnimatePopupOpen.
 ERROR_HANDLING_FLOW (CRITICAL): All dynamically generated error dialogs (Network, Server, AccountNotFound, etc.) present a single "Return to Title" option. This action triggers a full scene reload (ReloadCurrentScene), which includes a sign-out from all services (UGS, Firebase, Google). This constitutes a "Forced Reset Flow." Therefore, any user action following an error dialog ALWAYS begins from a clean, re-initialized state initiated by the OnTitleScreenPressed method. There are no "retry from the same screen" scenarios.
 NETWORK_REQUEST_PATTERN: All UI-initiated network requests MUST be wrapped in RequestHandler.FromUI(async () => { ... }); to handle network checks and global loading screens automatically.
@@ -84,6 +88,20 @@ On-Demand Authentication Principle: Authentication and related data fetches (e.g
 ACCOUNT_MODEL: Strictly one device per account. To enforce this, a unique device identifier must be stored in the cloud save data. This identifier must be checked before any critical cloud operation (e.g., loading data at startup, saving data manually, or saving on quit) to prevent an invalidated old device from proceeding. A successful account recovery on a new device must trigger an update of this identifier in the cloud, thus permanently invalidating the session on the old device.
 CODING_STYLE: Adherence to a strict K&R style is required. The opening brace '{' must be on the same line as the declaration (class, method, if, etc.). However, methods containing only a single statement may be written on a single line. Example: public bool IsReady() { return true; }
 NAMING_CONVENTION (AI-First Naming Convention):
+Casing: All folders, GameObjects, Prefabs, and Scene files MUST use PascalCase (e.g., UiPrefabs, Mode_CustomRace).
+Structure: GameObjects and folders should follow a Type_SpecificName_Variant structure.
+Type (Prefix): A prefix indicating the object's high-level category for easy sorting and identification.
+Sys_: Singleton system managers (e.g., Sys_GameFlowManager).
+Canvas_: Root Canvas objects (e.g., Canvas_UI, Canvas_Stage).
+Mode_: Root objects for major game modes (e.g., Mode_Training, Mode_CustomRace).
+Scene_: Root objects for distinct, loadable scenes (e.g., Scene_Race).
+Panel_: UI panels for specific functions or sub-screens within a Mode (e.g., Panel_RaceSettings, Panel_HorseSelection).
+Content_: Variable content areas within a panel.
+Header_, Footer_: Header and footer sections within a panel.
+Tab_: Clickable tab elements, typically for switching major modes or views.
+Btn_, Img_, Txt_: Specific UI component types.
+SpecificName: The concrete role of the object (e.g., Lobby, OwnerInfo).
+Variant (Optional Suffix): Used for variations of the same type (e.g., OK, Cancel).
 AI Interpretability: Naming must prioritize clear, common English words that are least likely to be misinterpreted by an AI. Avoid custom abbreviations.
 Brevity: While satisfying the above, aim for concise naming by using domain-specific language (e.g., Gem) or omitting contextually obvious words (e.g., ActiveSlotCount).
 Null Check Philosophy:
