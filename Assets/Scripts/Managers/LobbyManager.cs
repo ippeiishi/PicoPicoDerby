@@ -6,12 +6,16 @@ using uPalette.Runtime.Core;
 using System.Collections.Generic;
 
 public class LobbyManager : MonoBehaviour {
-    // ★変更点: ヘッダーのコメントをより正確な "Stage Modes" に変更
-    [Header("Stage Modes")] 
-    // ★変更点: 変数名をContentからModeに変更し、参照先をMode_オブジェクトにする
+    public static LobbyManager Instance { get; private set; }
+
+    public enum GameMode { Training, Legend, CustomRace, Race }
+
+    [Header("Stage Modes")]
     [SerializeField] private GameObject modeTraining;
     [SerializeField] private GameObject modeLegend;
     [SerializeField] private GameObject modeCustomRace;
+    [SerializeField] private GameObject sceneRace;
+    [SerializeField] private GameObject worldRace;
 
     [Header("Tab Buttons")]
     [SerializeField] private Button trainingModeTab;
@@ -39,6 +43,12 @@ public class LobbyManager : MonoBehaviour {
     private Button currentSelectedTab;
 
     void Awake() {
+        if (Instance == null) {
+            Instance = this;
+        } else {
+            Destroy(gameObject);
+        }
+
         var colorPalette = PaletteStore.Instance.ColorPalette;
         selectedBgColor = colorPalette.GetActiveValue(ColorEntry.BtnOK.ToEntryId()).Value;
         selectedTextColor = colorPalette.GetActiveValue(ColorEntry.UIPureWhite.ToEntryId()).Value;
@@ -63,10 +73,14 @@ public class LobbyManager : MonoBehaviour {
         }
 
         currentSelectedTab = trainingModeTab;
-        // ★変更点: 初期表示をModeオブジェクトに
+
+        // アプリ起動時の初期モード設定。UIの状態は変更しない。
         modeTraining.SetActive(true);
         modeLegend.SetActive(false);
         modeCustomRace.SetActive(false);
+        sceneRace.SetActive(false);
+        worldRace.SetActive(false);
+        
         UpdateAllTabVisuals(currentSelectedTab);
     }
 
@@ -83,16 +97,40 @@ public class LobbyManager : MonoBehaviour {
         }
         
         currentSelectedTab = selectedButton;
+        GameMode targetMode = GameMode.Training;
+        if (selectedButton == legendModeTab) targetMode = GameMode.Legend;
+        if (selectedButton == customRaceTab) targetMode = GameMode.CustomRace;
 
+        GameMode finalTargetMode = targetMode;
         TransitionManager.Instance.Play(
             onTransitionMidpoint: () => {
-                // ★変更点: 切り替え対象をModeオブジェクトに
-                modeTraining.SetActive(selectedButton == trainingModeTab);
-                modeLegend.SetActive(selectedButton == legendModeTab);
-                modeCustomRace.SetActive(selectedButton == customRaceTab);
+                SwitchMode(finalTargetMode, true);
                 UpdateAllTabVisuals(selectedButton);
             }
         );
+    }
+
+    public void SwitchMode(GameMode mode, bool isTabSwitch = false) {
+        modeTraining.SetActive(mode == GameMode.Training);
+        modeLegend.SetActive(mode == GameMode.Legend);
+        modeCustomRace.SetActive(mode == GameMode.CustomRace);
+        sceneRace.SetActive(mode == GameMode.Race);
+        worldRace.SetActive(mode == GameMode.Race);
+
+        if (mode == GameMode.Race) {
+            UIManager.Instance.ShowHeader(false);
+            UIManager.Instance.HideAllFooters();
+        } else {
+            UIManager.Instance.ShowHeader(true);
+            UIManager.Instance.ShowLobbyFooter();
+        }
+
+        if (isTabSwitch) {
+            if (mode == GameMode.Training) currentSelectedTab = trainingModeTab;
+            else if (mode == GameMode.Legend) currentSelectedTab = legendModeTab;
+            else if (mode == GameMode.CustomRace) currentSelectedTab = customRaceTab;
+            UpdateAllTabVisuals(currentSelectedTab);
+        }
     }
 
     private void OnTransitionStart() { SetTabsInteractable(false); }

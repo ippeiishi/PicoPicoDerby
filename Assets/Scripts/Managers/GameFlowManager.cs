@@ -12,10 +12,11 @@ public class GameFlowManager : MonoBehaviour {
     [SerializeField] private GameObject loadingScreen;
     [SerializeField] private GameObject firstLaunchDialog;
     [SerializeField] private GameObject accountSettingsDialog;
-    [SerializeField] private GameObject lobbyScreen; // ★ 追加
+    [SerializeField] private GameObject lobbyScreen;
 
-    [Header("Header UI")]
-    [SerializeField] private GameObject header;
+    // ★ Header UIセクションは不要になったため削除
+
+    [Header("Header UI References (for data update)")] // ★役割を明確化
     [SerializeField] private TextMeshProUGUI moneyText;
     [SerializeField] private TextMeshProUGUI gemText;
 
@@ -23,13 +24,17 @@ public class GameFlowManager : MonoBehaviour {
 
     void Awake() {
         Instance = this;
-        titleScreen.SetActive(true);
-        loadingScreen.SetActive(false);
-        header.SetActive(false);
-        lobbyScreen.SetActive(false); // ★ 追加
     }
 
     void Start() {
+        // ★ UIManagerを呼び出してUIの初期状態を設定
+        UIManager.Instance.ShowHeader(false);
+        UIManager.Instance.HideAllFooters();
+
+        titleScreen.SetActive(true);
+        loadingScreen.SetActive(false);
+        lobbyScreen.SetActive(false);
+
         UIActionDispatcher.Instance.OnRequestGameFlowAction += HandleGameFlowAction;
         UIActionDispatcher.Instance.OnRequestSystemAction += HandleSystemAction;
     }
@@ -99,9 +104,12 @@ public class GameFlowManager : MonoBehaviour {
                 await RemoteConfigManager.Instance.FetchConfigsAsync();
                 bool loadSuccess = await DataManager.Instance.LoadOwnerDataAsync();
                 if (loadSuccess) {
+                    // ★ UIManagerを呼び出してUIを表示
+                    UIManager.Instance.ShowHeader(true);
+                    UIManager.Instance.ShowLobbyFooter();
+
                     titleScreen.SetActive(false);
-                    header.SetActive(true);
-                    lobbyScreen.SetActive(true); // ★ 追加
+                    lobbyScreen.SetActive(true);
                     UpdateHeaderUI();
                 } else {
                     UIActionDispatcher.Instance.DispatchOpenRequest("DataNotFoundError", null);
@@ -113,9 +121,12 @@ public class GameFlowManager : MonoBehaviour {
     }
  
     public void NotifyFirstLaunchComplete() {
+        // ★ UIManagerを呼び出してUIを表示
+        UIManager.Instance.ShowHeader(true);
+        UIManager.Instance.ShowLobbyFooter();
+
         titleScreen.SetActive(false);
-        header.SetActive(true);
-        lobbyScreen.SetActive(true); // ★ 追加
+        lobbyScreen.SetActive(true);
         UpdateHeaderUI();
     }
 
