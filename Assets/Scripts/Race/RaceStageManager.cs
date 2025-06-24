@@ -2,11 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 
-[RequireComponent(typeof(RaceVisualizer))]
-public class RaceSceneController : MonoBehaviour {
-    public static RaceSceneController Instance { get; private set; }
-
-    private RaceVisualizer _raceVisualizer;
+public class RaceStageManager : MonoBehaviour {
+    public static RaceStageManager Instance { get; private set; }
 
     [Header("Race UI")]
     [SerializeField] private Button _buttonStartRace;
@@ -22,15 +19,8 @@ public class RaceSceneController : MonoBehaviour {
             Destroy(gameObject);
         }
 
-        _raceVisualizer = GetComponent<RaceVisualizer>();
-
         _buttonStartRace.onClick.AddListener(StartRaceAnimation);
         _buttonEndRace.onClick.AddListener(EndRace);
-    }
-
-    void OnEnable() {
-        _buttonStartRace.gameObject.SetActive(true);
-        _buttonEndRace.gameObject.SetActive(false);
     }
 
     private void OnDestroy() {
@@ -48,18 +38,16 @@ public class RaceSceneController : MonoBehaviour {
         var simulator = new SimpleRaceSimulator(input);
         _raceResult = simulator.RunSimulation();
         Debug.Log("Race simulation complete. Ready to visualize.");
-
-        _raceVisualizer.PrepareVisualization(_raceResult, _raceParameters);
     }
 
     private void StartRaceAnimation() {
-        _buttonStartRace.gameObject.SetActive(false);
-        _raceVisualizer.StartRaceAnimation();
+        Debug.Log("Race animation started.");
+        // ボタンの表示状態は変更しない
     }
 
     public void OnRaceAnimationFinished() {
         Debug.Log("Race animation finished.");
-        _buttonEndRace.gameObject.SetActive(true);
+        // ボタンの表示状態は変更しない
     }
 
     private void EndRace() {

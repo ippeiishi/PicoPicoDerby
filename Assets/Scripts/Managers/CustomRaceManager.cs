@@ -105,8 +105,7 @@ public class CustomRaceManager : MonoBehaviour {
         }
 
         LobbyManager.Instance.SwitchMode(LobbyManager.GameMode.Race);
-        RaceSceneController.Instance.PrepareRace(_raceParameters, contenders);
-    }
+        RaceStageManager.Instance.PrepareRace(_raceParameters, contenders);    }
 
     private void CreateMockHorseDatabase() {
         _mockHorseDatabase = new List<HorseData> {

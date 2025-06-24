@@ -1,7 +1,8 @@
 [VERSION_CONTROL]
-SCHEMA_VERSION: 1.11
+SCHEMA_VERSION: 1.12
 LAST_UPDATED: (更新実行時のUTC日時)
 CHANGE_LOG:
+(更新日): v1.12 - Added RACE_LOGIC_MODEL and UI_HIERARCHY_MODEL to PROJECT_ARCHETYPE_SUMMARY. Added Primacy of Existing Design rule to COLLABORATION_PHILOSOPHY.
 (更新日): v1.11 - Formalized role-based UI event handling in UI_EVENT_MODEL. Added UI_FEEDBACK_MODEL (ButtonEnhancer) and AUDIO_MODEL (string-based SE) to PROJECT_ARCHETYPE_SUMMARY.
 (更新日): v1.10 - Aligned UI_EVENT_MODEL and NAMING_CONVENTION with established project practices, including Mode/Scene/Panel/Tab prefixes, based on historical log review.
 (更新日): v1.9 - Redefined 'PROJECT_STATUS_SUMMARY' as a prepending historical log to preserve milestone history.
@@ -42,6 +43,7 @@ Consequential Refactoring: When a proposed change in one part of the codebase ma
 Final Integrity Check: After applying all rule-based modifications and before presenting any code to the user, I must perform a final, holistic review of the modified code. This check is specifically to identify and correct any violations of established rules (especially CODING_STYLE), as well as any syntax errors, typos, or logical inconsistencies that may have been introduced during the editing process. This ensures the provided code is not only compliant with the rules but also syntactically valid.
 Literal Interpretation of Explicit Instructions: When the user gives an explicit and unambiguous instruction (e.g., "Show the full text," "Do not omit anything," "Use this exact wording"), I must follow it literally, even if it seems redundant, inefficient, or contradicts my own judgment about what is helpful. My internal heuristics for brevity or efficiency are to be completely overridden by such explicit directives. Any deviation must be explicitly announced BEFORE presenting the response.
 Architectural Pattern Integration: When a new, reusable architectural pattern or system is established (e.g., a global event-driven transition system), its core mechanism MUST be documented as a new rule within the [PROJECT_ARCHETYPE_SUMMARY]. The [PROJECT_STATUS_SUMMARY] should only report the implementation of this pattern, not define the pattern itself. This ensures that core architectural knowledge persists across sessions.
+Primacy of Existing Design: Before proposing a solution for a new feature, especially one that interacts with existing systems, I must first analyze any user-provided code, explanations, or diagrams related to that system. I must then explicitly state my understanding of the existing design philosophy and wait for the user's confirmation that my understanding is correct. This confirmed understanding becomes the foundational premise for all subsequent proposals on that topic.
 [COMMUNICATION_STYLE]
 Tone & Manner: Responses must be direct, objective, and technical. Focus on facts, logic, and code.
 Prohibited Expressions: The use of the following is forbidden, regardless of intent:
@@ -71,7 +73,8 @@ UGS Remote Config: 4.1.1 (com.unity.remote-config)
 Newtonsoft Json: 3.2.1 (com.unity.nuget.newtonsoft-json)
 [PROJECT_STATUS_SUMMARY]
 This section serves as a historical log of major development milestones, not just a summary of the latest state. New entries should be prepended to the list, ensuring that the most recent activity is at the top while preserving the full history of completed milestones. It should answer the question: "What major features have been completed to get to this point?"
-(Current) Standardized the entire UI hierarchy and naming convention. Implemented the Lobby stage UI with a tab-switching system and a global, event-driven screen transition (iris wipe) system.
+(Current) Established the core race simulation logic and the UI/visualization architecture for the race scene. Implemented a UIManager for centralized control of global UI elements.
+(Previous) Standardized the entire UI hierarchy and naming convention. Implemented the Lobby stage UI with a tab-switching system and a global, event-driven screen transition (iris wipe) system.
 [PROJECT_ARCHETYPE_SUMMARY]
 SCENE_ARCHITECTURE: Single-Scene.
 DI_MODEL: Manual Singleton (ClassName.Instance).
@@ -90,16 +93,18 @@ On-Demand Authentication Principle: Authentication and related data fetches (e.g
 ACCOUNT_MODEL: Strictly one device per account. To enforce this, a unique device identifier must be stored in the cloud save data. This identifier must be checked before any critical cloud operation (e.g., loading data at startup, saving data manually, or saving on quit) to prevent an invalidated old device from proceeding. A successful account recovery on a new device must trigger an update of this identifier in the cloud, thus permanently invalidating the session on the old device.
 UI_FEEDBACK_MODEL: All Button components MUST have a ButtonEnhancer component attached. This component is solely responsible for non-logic user feedback:
 Visual Feedback: Automatically handles visual state changes for interactable/non-interactable states.
-Auditory Feedback: Automatically plays a sound on click. The sound is determined by the GameObject's name, following the ..._Sound suffix convention (e.g., _OK, _Cancel). If the suffix is omitted, a default "Click" sound is played.
+Auditory Feedback: Automatically plays a sound on click. The sound is determined by the GameObject's name, following the ...Sound suffix convention (e.g., OK, Cancel). If the suffix is omitted, a default "Click" sound is played.
 AUDIO_MODEL: The AudioManager uses a string-based dictionary (Dictionary<string, AudioClip>) to manage and play sound effects. This allows for scalable sound management where new sounds can be added via the Inspector without code changes. Components request sounds by passing a string name (e.g., AudioManager.Instance.PlaySE("OK")).
+RACE_LOGIC_MODEL: The core race simulation is based on a "Shared Base Speed + Individual Boosts" model. All horses share a common base speed with a random fluctuation per frame. Individual abilities (like Speed) do not affect this base speed but instead influence the power and frequency of "Boost" events that are added on top of it.
+UI_HIERARCHY_MODEL: The visibility of global UI elements (Header, Footer) is centrally managed by a dedicated UIManager singleton. Other managers (e.g., LobbyManager, GameFlowManager) MUST NOT control these elements directly. Instead, they must request a state change from UIManager (e.g., UIManager.Instance.ShowHeader(false), UIManager.Instance.ShowLobbyFooter()). This ensures a clear separation of concerns and prevents conflicting state changes.
 CODING_STYLE: Adherence to a strict K&R style is required. The opening brace '{' must be on the same line as the declaration (class, method, if, etc.). However, methods containing only a single statement may be written on a single line. Example: public bool IsReady() { return true; }
 NAMING_CONVENTION (AI-First Naming Convention):
 Casing: All folders, GameObjects, Prefabs, and Scene files MUST use PascalCase (e.g., UiPrefabs, Mode_CustomRace).
 Structure: GameObjects and folders should follow a Type_SpecificName_Variant structure.
 Type (Prefix): A prefix indicating the object's high-level category for easy sorting and identification.
-Sys_: Singleton system managers (e.g., Sys_GameFlowManager).
-Canvas_: Root Canvas objects (e.g., Canvas_UI, Canvas_Stage).
-Mode_: Root objects for major game modes (e.g., Mode_Training, Mode_CustomRace).
+Sys: Singleton system managers (e.g., Sys_GameFlowManager).
+Canvas: Root Canvas objects (e.g., Canvas_UI, Canvas_Stage).
+Mode: Root objects for major game modes (e.g., Mode_Training, Mode_CustomRace).
 Scene_: Root objects for distinct, loadable scenes (e.g., Scene_Race).
 Panel_: UI panels for specific functions or sub-screens within a Mode (e.g., Panel_RaceSettings, Panel_HorseSelection).
 Content_: Variable content areas within a panel.
