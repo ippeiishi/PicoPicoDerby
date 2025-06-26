@@ -19,9 +19,21 @@ public class HierarchyExporter {
     }
 
     private static void AppendChildren(Transform parent, string indent, StringBuilder sb) {
-        // Inactiveなオブジェクトも、同じ行に表示する
+        // 基本情報（名前とアクティブ状態）を構築
         string status = parent.gameObject.activeSelf ? "" : " (inactive)";
-        sb.AppendLine(indent + " " + parent.name + status);
+        string line = indent + " " + parent.name + status;
+
+        // RectTransformコンポーネントを取得試行
+        var rectTransform = parent.GetComponent<RectTransform>();
+        if (rectTransform != null)
+        {
+            // RectTransformが存在する場合、座標とサイズ情報を追記
+            // :F0フォーマットで小数点以下を非表示にする
+            string rectInfo = $" [x:{rectTransform.anchoredPosition.x:F0}, y:{rectTransform.anchoredPosition.y:F0}, w:{rectTransform.sizeDelta.x:F0}, h:{rectTransform.sizeDelta.y:F0}]";
+            line += rectInfo;
+        }
+
+        sb.AppendLine(line);
 
         // 再帰呼び出しで、次のインデントにハイフンを追加する
         foreach (Transform child in parent) {

@@ -1,130 +1,113 @@
-// RaceLogic.cs
-
 using System.Collections.Generic;
 using UnityEngine;
+
+// --- データ構造 ---
 
 /// <summary>
 /// レースシミュレーションの基本入力パラメータ。
 /// </summary>
-public class RaceSimulationInput
-{
-    /// <summary>
-    /// 出走頭数。
-    /// </summary>
+public class RaceSimulationInput {
     public int HorseCount { get; set; }
-
-    /// <summary>
-    /// レース距離（メートル単位）。
-    /// </summary>
     public int DistanceInMetres { get; set; }
 }
 
 /// <summary>
 /// 1フレームにおける、1頭の馬の状態。
 /// </summary>
-public class FrameHorseState
-{
-    /// <summary>
-    /// レース開始からの総移動距離（ピクセル単位）。
-    /// </summary>
-    public float TotalDistancePx { get; set; }
-
-    // 将来の拡張用:
-    // public int PositionY { get; set; }
-    // public BoostStateType BoostState { get; set; }
+public class FrameHorseState {
+    public float PositionX { get; set; }
+    public float PositionY { get; set; }
+    public int SortingOrder { get; set; }
 }
 
 /// <summary>
 /// レースシミュレーションの結果。全フレームの全馬の軌跡データを含む。
 /// </summary>
-public class RaceSimulationResult
-{
-    /// <summary>
-    /// 全フレームの馬の状態を記録したリスト。
-    /// 外側のリストがフレーム(インデックス=フレーム数-1)、内側のリストが馬(インデックス=馬ID)に対応する。
-    /// 例: RaceLog[10][3] は、11フレーム目における4番目の馬の状態。
-    /// </summary>
+public class RaceSimulationResult {
     public List<List<FrameHorseState>> RaceLog { get; private set; }
-
-    /// <summary>
-    /// 各馬のゴールタイム（フレーム数）。
-    /// </summary>
     public List<int> GoalTimesInFrames { get; private set; }
 
-    public RaceSimulationResult(int horseCount)
-    {
+    public RaceSimulationResult(int horseCount) {
         RaceLog = new List<List<FrameHorseState>>();
         GoalTimesInFrames = new List<int>(new int[horseCount]);
-        for (int i = 0; i < horseCount; i++)
-        {
+        for (int i = 0; i < horseCount; i++) {
             GoalTimesInFrames[i] = -1;
         }
     }
 }
 
+
+// --- シミュレーター ---
+
 /// <summary>
-/// 「ランダムな揺らぎを持つ基礎速度」のみを考慮した、最もシンプルなレースシミュレーター。
+/// 旧ピコダビのロジック核心部を継承したレースシミュレーター。
+/// 全フレームの全馬の位置と深度を事前に計算し、ログとして出力する。
 /// </summary>
-public class SimpleRaceSimulator
-{
+public class RaceSimulator {
     // --- 定数 ---
-    private const int METRES_TO_PIXELS_RATE = 50;
-    private const float TIME_ADJUSTMENT_FACTOR = 0.127f; // 旧コードの係数
-    private const int BASE_SPEED_UNIT = 100;
+    private const float BASE_SPEED_PX_PER_FRAME = 0.2f;
+    private const int PIXELS_PER_METRE = 10;
 
     private readonly RaceSimulationInput _input;
 
-    public SimpleRaceSimulator(RaceSimulationInput input)
-    {
+    public RaceSimulator(RaceSimulationInput input) {
         _input = input;
     }
 
-    public RaceSimulationResult RunSimulation()
-    {
-        int totalDistancePx = _input.DistanceInMetres * METRES_TO_PIXELS_RATE;
+    public RaceSimulationResult RunSimulation() {
+        int totalDistancePx = _input.DistanceInMetres * PIXELS_PER_METRE;
         var result = new RaceSimulationResult(_input.HorseCount);
         
-        // 現在の各馬の状態を保持するリスト
         var currentStates = new List<FrameHorseState>();
-        for (int i = 0; i < _input.HorseCount; i++)
-        {
-            currentStates.Add(new FrameHorseState { TotalDistancePx = 0 });
+        for (int i = 0; i < _input.HorseCount; i++) {
+            currentStates.Add(new FrameHorseState { 
+                PositionX = 0,
+                PositionY = 0,
+                SortingOrder = 0
+            });
         }
+
+        var initialFrameLog = new List<FrameHorseState>();
+        foreach (var state in currentStates) {
+            initialFrameLog.Add(new FrameHorseState { 
+                PositionX = state.PositionX,
+                PositionY = state.PositionY,
+                SortingOrder = state.SortingOrder
+            });
+        }
+        result.RaceLog.Add(initialFrameLog);
 
         int finishedCount = 0;
         int currentFrame = 0;
 
-        while (finishedCount < _input.HorseCount)
-        {
+        while (finishedCount < _input.HorseCount) {
             currentFrame++;
             
-            // このフレームの馬の状態を記録するリストを準備
             var frameLog = new List<FrameHorseState>();
 
-            for (int i = 0; i < _input.HorseCount; i++)
-            {
-                // ゴール済みの馬は位置を更新しない
-                if (result.GoalTimesInFrames[i] == -1)
-                {
-                    float frameDistance = ((BASE_SPEED_UNIT * TIME_ADJUSTMENT_FACTOR) + Random.Range(0, 3)) * 10;
-                    currentStates[i].TotalDistancePx += frameDistance;
+            for (int i = 0; i < _input.HorseCount; i++) {
+                if (result.GoalTimesInFrames[i] == -1) {
+                    float frameDistance = BASE_SPEED_PX_PER_FRAME + (Random.Range(0, 4) * 0.1f);
+                    currentStates[i].PositionX += frameDistance;
 
-                    // ゴール判定
-                    if (currentStates[i].TotalDistancePx >= totalDistancePx)
-                    {
+                    if (currentStates[i].PositionX >= totalDistancePx) {
+                        // ゴールしたフレームでは、座標をゴールラインに完全に一致させる
+                        currentStates[i].PositionX = totalDistancePx;
+                        
                         result.GoalTimesInFrames[i] = currentFrame;
                         finishedCount++;
                     }
                 }
                 
-                // 現在の状態をコピーしてこのフレームのログに追加
-                frameLog.Add(new FrameHorseState { TotalDistancePx = currentStates[i].TotalDistancePx });
+                frameLog.Add(new FrameHorseState {
+                    PositionX = currentStates[i].PositionX,
+                    PositionY = currentStates[i].PositionY,
+                    SortingOrder = currentStates[i].SortingOrder
+                });
             }
             
-            // このフレームの全馬の状態をレースログに追加
             result.RaceLog.Add(frameLog);
         }
-
         return result;
     }
 }
