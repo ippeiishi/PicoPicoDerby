@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using System.Linq; // ★★★ LINQを使用するために追加 ★★★
 
 public class RaceStageManager : MonoBehaviour {
     public static RaceStageManager Instance { get; private set; }
@@ -9,7 +10,7 @@ public class RaceStageManager : MonoBehaviour {
     [SerializeField] private RaceVisualizer _raceVisualizer;
     
     [Header("Scene References")]
-    [SerializeField] private RectTransform _containerCourse;
+    [SerializeField] private RectTransform _containerMovableBG;
     [SerializeField] private RectTransform _containerGate;
 
     [Header("UI References")]
@@ -22,11 +23,8 @@ public class RaceStageManager : MonoBehaviour {
     private const int PIXELS_PER_METRE = 10;
 
     private void Awake() {
-        if (Instance == null) {
-            Instance = this;
-        } else {
-            Destroy(gameObject);
-        }
+        if (Instance == null) { Instance = this; }
+        else { Destroy(gameObject); }
 
         _buttonStartRace.onClick.AddListener(StartRaceAnimation);
         _buttonEndRace.onClick.AddListener(EndRace);
@@ -41,9 +39,8 @@ public class RaceStageManager : MonoBehaviour {
         _raceParameters = raceParams;
 
         float startOffsetPx = raceParams.Distance * PIXELS_PER_METRE;
-        _containerCourse.localPosition = new Vector2(startOffsetPx, _containerCourse.localPosition.y);
-        _containerGate.localPosition = new Vector2(startOffsetPx * -1, _containerGate.localPosition.y);
-
+        _containerMovableBG.localPosition = new Vector2(startOffsetPx, 0);
+        _containerGate.localPosition = new Vector2(startOffsetPx * -1, 0);
         var input = new RaceSimulationInput {
             HorseCount = contenders.Count,
             DistanceInMetres = raceParams.Distance
@@ -51,12 +48,15 @@ public class RaceStageManager : MonoBehaviour {
         
         var simulator = new RaceSimulator(input);
         _raceResult = simulator.RunSimulation();
-        Debug.Log("Race simulation complete. Ready to visualize.");
+        
+        // ★★★ ここでゴールフレームをログ出力 ★★★
+        string goalFramesLog = string.Join("f|", _raceResult.GoalTimesInFrames.Select(f => f.ToString()));
+        Debug.Log($"Goal Frames: {goalFramesLog}f");
 
         _raceVisualizer.PrepareVisualization(_raceResult, _raceParameters);
     }
 
-    private void StartRaceAnimation() {
+    public void StartRaceAnimation() {
         Debug.Log("Race animation started.");
         _raceVisualizer.StartRaceAnimation();
     }
