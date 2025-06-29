@@ -5,16 +5,24 @@ using System.Linq;
 public class RaceVisualizer : MonoBehaviour {
     // --- 定数 ---
     private const float INITIAL_X = 0;
-    private const float INITIAL_Y = 30f;
-    private const float LANE_OFFSET_Y = -12f;
+    private const float INITIAL_Y = 27f;
+    private const float LANE_OFFSET_Y = -10f;
     private const int BASE_HORSE_SORT_ORDER = 11;
     private const int PIXELS_PER_METRE = 10;
     private const float SIMULATION_SCALE_FACTOR = 10.0f;
-    private const int FRAME_PLAYBACK_SPEED = 2; // ★追加: ログの再生速度（飛ばし係数）
+    private const int FRAME_PLAYBACK_SPEED = 10;
+
+    private const int ZOOM_SECTION_UNITS = 50000;
+    private const float ZOOM_MIN_SCALE = 0.75f;
+    private const float ZOOM_MAX_SCALE = 1.5f;
+    private const float ZOOM_OFFSET_MULTIPLIER = 150f;
 
     [Header("Component References")]
     [SerializeField] private RectTransform _containerRaceSet;
     [SerializeField] private RectTransform _containerMovableBG;
+    
+    [Header("Zoom Target")]
+    [SerializeField] private RectTransform _viewRaceTransform;
 
     private List<RectTransform> _horseTransforms = new List<RectTransform>();
     private List<Canvas> _horseCanvases = new List<Canvas>();
@@ -52,7 +60,7 @@ public class RaceVisualizer : MonoBehaviour {
             _firstGoalFrame = result.GoalTimesInFrames.Where(t => t > 0).Min();
         }
 
-        _containerRaceSet.localPosition = new Vector2(-150, 190);
+        _containerRaceSet.localPosition = new Vector2(-100, _containerRaceSet.localPosition.y);
 
         if (result == null || result.RaceLog.Count == 0) {
             foreach (var horseTransform in _horseTransforms) {
@@ -83,7 +91,6 @@ public class RaceVisualizer : MonoBehaviour {
     private void Update() {
         if (!_isPlaying) return;
 
-        // ★変更: 定義した再生速度でフレームを進める
         _currentFrame += FRAME_PLAYBACK_SPEED;
 
         if (_currentFrame >= _result.RaceLog.Count) {
@@ -109,16 +116,25 @@ public class RaceVisualizer : MonoBehaviour {
             leadHorsePositionUnits = currentFrameLog.Max(state => state.PositionX);
         }
 
+        // ★変更: 最初にズームを計算してscale値を取得
+         float scale = UpdateRaceZoom(leadHorsePositionUnits);
+        float zoomOffsetX = (ZOOM_MAX_SCALE - scale) * ZOOM_OFFSET_MULTIPLIER;
+        float dynamicThresholdPx = 180f + (zoomOffsetX);
+
         int currentFollowTargetUnits = 0;
         float leadHorseAbsolutePx = leadHorsePositionUnits / SIMULATION_SCALE_FACTOR;
-        if (leadHorseAbsolutePx >= 270) {
-            int thresholdInUnits = (int)(270 * SIMULATION_SCALE_FACTOR);
+
+        if (leadHorseAbsolutePx >= dynamicThresholdPx) {
+            int thresholdInUnits = (int)(dynamicThresholdPx * SIMULATION_SCALE_FACTOR);
             currentFollowTargetUnits = leadHorsePositionUnits - thresholdInUnits;
         }
 
-        if (_lockedFollowTargetUnits == null && _firstGoalFrame != -1 && _currentFrame >= _firstGoalFrame) {
-            _lockedFollowTargetUnits = currentFollowTargetUnits;
-        }
+if (_lockedFollowTargetUnits == null && _firstGoalFrame != -1 && _currentFrame >= _firstGoalFrame) {
+    float startOffsetPx = _raceParameters.Distance * PIXELS_PER_METRE;
+    currentFollowTargetUnits = (int)((startOffsetPx - 180f) * SIMULATION_SCALE_FACTOR);
+    _lockedFollowTargetUnits = currentFollowTargetUnits;
+}
+
 
         int finalFollowTargetUnits = _lockedFollowTargetUnits ?? currentFollowTargetUnits;
 
@@ -155,12 +171,42 @@ public class RaceVisualizer : MonoBehaviour {
         int leadHorsePositionUnits = finishFrameLog.Max(state => state.PositionX);
         int followTargetUnits = 0;
         float leadHorseAbsolutePx = leadHorsePositionUnits / SIMULATION_SCALE_FACTOR;
-        if (leadHorseAbsolutePx >= 270) {
-            int thresholdInUnits = (int)(270 * SIMULATION_SCALE_FACTOR);
+        if (leadHorseAbsolutePx >= 180) {
+            int thresholdInUnits = (int)(180 * SIMULATION_SCALE_FACTOR);
             followTargetUnits = leadHorsePositionUnits - thresholdInUnits;
         }
 
         UpdateRaceViewPosition(followTargetUnits);
         UpdateEachHorsePosition(finishFrameLog, followTargetUnits);
+        _viewRaceTransform.localScale = new Vector3(1.5f, 1.5f, 1.0f);
+
+    }
+
+    private float UpdateRaceZoom(int leadHorsePositionUnits) {
+        if (_viewRaceTransform == null || _raceParameters == null) return ZOOM_MAX_SCALE;
+
+        float totalDistanceUnits = _raceParameters.Distance * 100;
+        float remainingDistanceUnits = totalDistanceUnits - leadHorsePositionUnits;
+
+        float scale = ZOOM_MAX_SCALE;
+        bool inZoomSection = false;
+        float progress = 0f;
+
+        if (leadHorsePositionUnits < ZOOM_SECTION_UNITS) {
+            progress = (float)leadHorsePositionUnits / ZOOM_SECTION_UNITS;
+            inZoomSection = true;
+        }
+        else if (remainingDistanceUnits < ZOOM_SECTION_UNITS) {
+            progress = 1.0f - (remainingDistanceUnits / ZOOM_SECTION_UNITS);
+            inZoomSection = true;
+        }
+
+        if (inZoomSection) {
+            float parabola = Mathf.Abs(progress - 0.5f) * 2.0f;
+            scale = Mathf.Lerp(ZOOM_MIN_SCALE, ZOOM_MAX_SCALE, parabola);
+        }
+     
+        _viewRaceTransform.localScale = new Vector3(scale, scale, 1.0f);
+        return scale;
     }
 }
