@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
-using System.Linq; // ★★★ LINQを使用するために追加 ★★★
+using System.Linq;
 
 public class RaceStageManager : MonoBehaviour {
     public static RaceStageManager Instance { get; private set; }
@@ -14,8 +14,8 @@ public class RaceStageManager : MonoBehaviour {
     [SerializeField] private RectTransform _containerGate;
 
     [Header("UI References")]
-    [SerializeField] private Button _buttonStartRace;
-    [SerializeField] private Button _buttonEndRace;
+    [SerializeField] private Button _btnStartRace;
+    [SerializeField] private Button _btnEndRace;
 
     private RaceSimulationResult _raceResult;
     private RaceParameters _raceParameters;
@@ -26,13 +26,13 @@ public class RaceStageManager : MonoBehaviour {
         if (Instance == null) { Instance = this; }
         else { Destroy(gameObject); }
 
-        _buttonStartRace.onClick.AddListener(StartRaceAnimation);
-        _buttonEndRace.onClick.AddListener(EndRace);
+        _btnStartRace.onClick.AddListener(StartRaceAnimation);
+        _btnEndRace.onClick.AddListener(EndRace);
     }
 
     private void OnDestroy() {
-        _buttonStartRace.onClick.RemoveListener(StartRaceAnimation);
-        _buttonEndRace.onClick.RemoveListener(EndRace);
+        _btnStartRace.onClick.RemoveListener(StartRaceAnimation);
+        _btnEndRace.onClick.RemoveListener(EndRace);
     }
 
     public void PrepareRace(RaceParameters raceParams, List<HorseData> contenders) {
@@ -49,7 +49,6 @@ public class RaceStageManager : MonoBehaviour {
         var simulator = new RaceSimulator(input);
         _raceResult = simulator.RunSimulation();
         
-        // ★★★ ここでゴールフレームをログ出力 ★★★
         string goalFramesLog = string.Join("f|", _raceResult.GoalTimesInFrames.Select(f => f.ToString()));
         Debug.Log($"Goal Frames: {goalFramesLog}f");
 

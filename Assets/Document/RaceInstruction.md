@@ -131,97 +131,98 @@ b. General Problem-Solving: For general issues (e.g., error messages, algorithmi
 
 // [2.1. CURRENT_HIERARCHY]
 //--- HIERARCHY_START ---
-- Stage_Race [x:0, y:0, w:360, h:640]
--- Img_Inner_Course [x:0, y:153, w:360, h:185]
--- Img_Outer_Course [x:0, y:280, w:360, h:50]
--- Img_Outer_Rail [x:0, y:263, w:360, h:15]
--- Img_Middle_BushArea [x:0, y:250, w:360, h:10]
--- Img_Inner_Rail [x:0, y:238, w:360, h:15]
--- Container_RaceSet [x:0, y:190, w:360, h:260]
---- Horse_0 [x:0, y:28, w:30, h:10]
----- Shadow [x:0, y:0, w:25, h:5]
----- Body [x:0, y:15, w:30, h:30]
----- Hair [x:0, y:15, w:30, h:30]
----- Eye [x:4, y:19, w:3, h:3]
---- Horse_1 [x:0, y:18, w:30, h:10]
----- Shadow [x:0, y:0, w:25, h:5]
----- Body [x:0, y:15, w:30, h:30]
----- Hair [x:0, y:15, w:30, h:30]
----- Eye [x:4, y:19, w:3, h:3]
---- Horse_2 [x:0, y:6, w:30, h:10]
----- Shadow [x:0, y:0, w:25, h:5]
----- Body [x:0, y:15, w:30, h:30]
----- Hair [x:0, y:15, w:30, h:30]
----- Eye [x:4, y:19, w:3, h:3]
---- Horse_3 [x:0, y:-6, w:30, h:10]
----- Shadow [x:0, y:0, w:25, h:5]
----- Body [x:0, y:15, w:30, h:30]
----- Hair [x:0, y:15, w:30, h:30]
----- Eye [x:4, y:19, w:3, h:3]
---- Horse_4 [x:0, y:-18, w:30, h:10]
----- Shadow [x:0, y:0, w:25, h:5]
----- Body [x:0, y:15, w:30, h:30]
----- Hair [x:0, y:15, w:30, h:30]
----- Eye [x:4, y:19, w:3, h:3]
---- Horse_5 [x:0, y:-30, w:30, h:10]
----- Shadow [x:0, y:0, w:25, h:5]
----- Body [x:0, y:15, w:30, h:30]
----- Hair [x:0, y:15, w:30, h:30]
----- Eye [x:4, y:19, w:3, h:3]
---- Horse_6 [x:0, y:-42, w:30, h:10]
----- Shadow [x:0, y:0, w:25, h:5]
----- Body [x:0, y:15, w:30, h:30]
----- Hair [x:0, y:15, w:30, h:30]
----- Eye [x:4, y:19, w:3, h:3]
---- Horse_7 [x:0, y:-54, w:30, h:10]
----- Shadow [x:0, y:0, w:25, h:5]
----- Body [x:0, y:15, w:30, h:30]
----- Hair [x:0, y:15, w:30, h:30]
----- Eye [x:4, y:19, w:3, h:3]
---- Horse_8 [x:0, y:-66, w:30, h:10]
----- Shadow [x:0, y:0, w:25, h:5]
----- Body [x:0, y:15, w:30, h:30]
----- Hair [x:0, y:15, w:30, h:30]
----- Eye [x:4, y:19, w:3, h:3]
---- Horse_9 [x:0, y:-78, w:30, h:10]
----- Shadow [x:0, y:0, w:25, h:5]
----- Body [x:0, y:15, w:30, h:30]
----- Hair [x:0, y:15, w:30, h:30]
----- Eye [x:4, y:19, w:3, h:3]
---- Horse_10 [x:0, y:-90, w:30, h:10]
----- Shadow [x:0, y:0, w:25, h:5]
----- Body [x:0, y:15, w:30, h:30]
----- Hair [x:0, y:15, w:30, h:30]
----- Eye [x:4, y:19, w:3, h:3]
---- Horse_11 [x:0, y:-102, w:30, h:10]
----- Shadow [x:0, y:0, w:25, h:5]
----- Body [x:0, y:15, w:30, h:30]
----- Hair [x:0, y:15, w:30, h:30]
----- Eye [x:4, y:19, w:3, h:3]
---- Container_MovableBG [x:0, y:0, w:100, h:100]
----- Goal [x:0, y:78, w:40, h:76]
----- Container_Gate [x:0, y:0, w:100, h:100]
------ Gate_0 [x:0, y:65, w:30, h:50]
------ Gate_1 [x:0, y:53, w:30, h:50]
------ Gate_2 [x:0, y:41, w:30, h:50]
------ Gate_3 [x:0, y:29, w:30, h:50]
------ Gate_4 [x:0, y:17, w:30, h:50]
------ Gate_5 [x:0, y:5, w:30, h:50]
------ Gate_6 [x:0, y:-7, w:30, h:50]
------ Gate_7 [x:0, y:-19, w:30, h:50]
------ Gate_8 [x:0, y:-31, w:30, h:50]
------ Gate_9 [x:0, y:-43, w:30, h:50]
------ Gate_10 [x:0, y:-55, w:30, h:50]
------ Gate_11 [x:0, y:-67, w:30, h:50]
------ Gate_12 [x:0, y:-79, w:30, h:50]
--- Img_Top_Frame [x:0, y:313, w:360, h:15]
--- Img_Bottom_Frame [x:0, y:68, w:360, h:15]
--- UI_RaceInfo [x:0, y:-130, w:360, h:380]
--- UI_RaceControls [x:0, y:40, w:360, h:40]
---- Btn_StartRace [x:-84, y:0, w:140, h:36]
----- Text (TMP) [x:0, y:0, w:130, h:36]
---- Btn_EndRace [x:87, y:0, w:140, h:36]
----- Text (TMP) [x:0, y:0, w:130, h:36]
+{ "name": "Stage_Race", "parent": null, "active": true, "rect": { "x": 0, "y": 0, "w": 360, "h": 640 } }
+{ "name": "View_Race", "parent": "Stage_Race", "active": true, "rect": { "x": 0, "y": 190, "w": 360, "h": 280 } }
+{ "name": "Img_Inner_Course", "parent": "View_Race", "active": true, "rect": { "x": 0, "y": -38, "w": 800, "h": 185 } }
+{ "name": "Img_Outer_Course", "parent": "View_Race", "active": true, "rect": { "x": 0, "y": 90, "w": 800, "h": 60 } }
+{ "name": "Img_Outer_Rail", "parent": "View_Race", "active": true, "rect": { "x": 0, "y": 55, "w": 800, "h": 10 } }
+{ "name": "Img_Middle_BushArea", "parent": "View_Race", "active": true, "rect": { "x": 0, "y": 45, "w": 800, "h": 10 } }
+{ "name": "Img_Inner_Rail", "parent": "View_Race", "active": true, "rect": { "x": 0, "y": 35, "w": 800, "h": 10 } }
+{ "name": "Container_RaceSet", "parent": "View_Race", "active": true, "rect": { "x": 0, "y": 0, "w": 360, "h": 280 } }
+{ "name": "Horse_0", "parent": "Container_RaceSet", "active": true, "rect": { "x": 0, "y": 27, "w": 24, "h": 10 } }
+{ "name": "Shadow", "parent": "Horse_0", "active": true, "rect": { "x": 0, "y": 0, "w": 24, "h": 5 } }
+{ "name": "Body", "parent": "Horse_0", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Hair", "parent": "Horse_0", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Eye", "parent": "Horse_0", "active": true, "rect": { "x": 3, "y": 15, "w": 2, "h": 2 } }
+{ "name": "Horse_1", "parent": "Container_RaceSet", "active": true, "rect": { "x": 0, "y": 15, "w": 24, "h": 10 } }
+{ "name": "Shadow", "parent": "Horse_1", "active": true, "rect": { "x": 0, "y": 0, "w": 24, "h": 5 } }
+{ "name": "Body", "parent": "Horse_1", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Hair", "parent": "Horse_1", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Eye", "parent": "Horse_1", "active": true, "rect": { "x": 3, "y": 15, "w": 2, "h": 2 } }
+{ "name": "Horse_2", "parent": "Container_RaceSet", "active": true, "rect": { "x": 0, "y": 5, "w": 24, "h": 10 } }
+{ "name": "Shadow", "parent": "Horse_2", "active": true, "rect": { "x": 0, "y": 0, "w": 24, "h": 5 } }
+{ "name": "Body", "parent": "Horse_2", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Hair", "parent": "Horse_2", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Eye", "parent": "Horse_2", "active": true, "rect": { "x": 3, "y": 15, "w": 2, "h": 2 } }
+{ "name": "Horse_3", "parent": "Container_RaceSet", "active": true, "rect": { "x": 0, "y": -5, "w": 24, "h": 10 } }
+{ "name": "Shadow", "parent": "Horse_3", "active": true, "rect": { "x": 0, "y": 0, "w": 24, "h": 5 } }
+{ "name": "Body", "parent": "Horse_3", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Hair", "parent": "Horse_3", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Eye", "parent": "Horse_3", "active": true, "rect": { "x": 3, "y": 15, "w": 2, "h": 2 } }
+{ "name": "Horse_4", "parent": "Container_RaceSet", "active": true, "rect": { "x": 0, "y": -15, "w": 24, "h": 10 } }
+{ "name": "Shadow", "parent": "Horse_4", "active": true, "rect": { "x": 0, "y": 0, "w": 24, "h": 5 } }
+{ "name": "Body", "parent": "Horse_4", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Hair", "parent": "Horse_4", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Eye", "parent": "Horse_4", "active": true, "rect": { "x": 3, "y": 15, "w": 2, "h": 2 } }
+{ "name": "Horse_5", "parent": "Container_RaceSet", "active": true, "rect": { "x": 0, "y": -25, "w": 24, "h": 10 } }
+{ "name": "Shadow", "parent": "Horse_5", "active": true, "rect": { "x": 0, "y": 0, "w": 24, "h": 5 } }
+{ "name": "Body", "parent": "Horse_5", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Hair", "parent": "Horse_5", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Eye", "parent": "Horse_5", "active": true, "rect": { "x": 3, "y": 15, "w": 2, "h": 2 } }
+{ "name": "Horse_6", "parent": "Container_RaceSet", "active": true, "rect": { "x": 0, "y": -35, "w": 24, "h": 10 } }
+{ "name": "Shadow", "parent": "Horse_6", "active": true, "rect": { "x": 0, "y": 0, "w": 24, "h": 5 } }
+{ "name": "Body", "parent": "Horse_6", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Hair", "parent": "Horse_6", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Eye", "parent": "Horse_6", "active": true, "rect": { "x": 3, "y": 15, "w": 2, "h": 2 } }
+{ "name": "Horse_7", "parent": "Container_RaceSet", "active": true, "rect": { "x": 0, "y": -45, "w": 24, "h": 10 } }
+{ "name": "Shadow", "parent": "Horse_7", "active": true, "rect": { "x": 0, "y": 0, "w": 24, "h": 5 } }
+{ "name": "Body", "parent": "Horse_7", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Hair", "parent": "Horse_7", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Eye", "parent": "Horse_7", "active": true, "rect": { "x": 3, "y": 15, "w": 2, "h": 2 } }
+{ "name": "Horse_8", "parent": "Container_RaceSet", "active": true, "rect": { "x": 0, "y": -55, "w": 24, "h": 10 } }
+{ "name": "Shadow", "parent": "Horse_8", "active": true, "rect": { "x": 0, "y": 0, "w": 24, "h": 5 } }
+{ "name": "Body", "parent": "Horse_8", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Hair", "parent": "Horse_8", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Eye", "parent": "Horse_8", "active": true, "rect": { "x": 3, "y": 15, "w": 2, "h": 2 } }
+{ "name": "Horse_9", "parent": "Container_RaceSet", "active": true, "rect": { "x": 0, "y": -65, "w": 24, "h": 10 } }
+{ "name": "Shadow", "parent": "Horse_9", "active": true, "rect": { "x": 0, "y": 0, "w": 24, "h": 5 } }
+{ "name": "Body", "parent": "Horse_9", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Hair", "parent": "Horse_9", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Eye", "parent": "Horse_9", "active": true, "rect": { "x": 3, "y": 15, "w": 2, "h": 2 } }
+{ "name": "Horse_10", "parent": "Container_RaceSet", "active": true, "rect": { "x": 0, "y": -75, "w": 24, "h": 10 } }
+{ "name": "Shadow", "parent": "Horse_10", "active": true, "rect": { "x": 0, "y": 0, "w": 24, "h": 5 } }
+{ "name": "Body", "parent": "Horse_10", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Hair", "parent": "Horse_10", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Eye", "parent": "Horse_10", "active": true, "rect": { "x": 3, "y": 15, "w": 2, "h": 2 } }
+{ "name": "Horse_11", "parent": "Container_RaceSet", "active": true, "rect": { "x": 0, "y": -85, "w": 24, "h": 10 } }
+{ "name": "Shadow", "parent": "Horse_11", "active": true, "rect": { "x": 0, "y": 0, "w": 24, "h": 5 } }
+{ "name": "Body", "parent": "Horse_11", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Hair", "parent": "Horse_11", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
+{ "name": "Eye", "parent": "Horse_11", "active": true, "rect": { "x": 3, "y": 15, "w": 2, "h": 2 } }
+{ "name": "Container_MovableBG", "parent": "Container_RaceSet", "active": true, "rect": { "x": 0, "y": 0, "w": 100, "h": 100 } }
+{ "name": "Goal", "parent": "Container_MovableBG", "active": true, "rect": { "x": 0, "y": 58, "w": 33, "h": 56 } }
+{ "name": "Container_Gate", "parent": "Container_MovableBG", "active": true, "rect": { "x": 0, "y": 0, "w": 100, "h": 100 } }
+{ "name": "Gate_0", "parent": "Container_Gate", "active": true, "rect": { "x": 0, "y": 47, "w": 24, "h": 35 } }
+{ "name": "Gate_1", "parent": "Container_Gate", "active": true, "rect": { "x": 0, "y": 37, "w": 24, "h": 35 } }
+{ "name": "Gate_2", "parent": "Container_Gate", "active": true, "rect": { "x": 0, "y": 27, "w": 24, "h": 35 } }
+{ "name": "Gate_3", "parent": "Container_Gate", "active": true, "rect": { "x": 0, "y": 17, "w": 24, "h": 35 } }
+{ "name": "Gate_4", "parent": "Container_Gate", "active": true, "rect": { "x": 0, "y": 7, "w": 24, "h": 35 } }
+{ "name": "Gate_5", "parent": "Container_Gate", "active": true, "rect": { "x": 0, "y": -3, "w": 24, "h": 35 } }
+{ "name": "Gate_6", "parent": "Container_Gate", "active": true, "rect": { "x": 0, "y": -13, "w": 24, "h": 35 } }
+{ "name": "Gate_7", "parent": "Container_Gate", "active": true, "rect": { "x": 0, "y": -23, "w": 24, "h": 35 } }
+{ "name": "Gate_8", "parent": "Container_Gate", "active": true, "rect": { "x": 0, "y": -33, "w": 24, "h": 35 } }
+{ "name": "Gate_9", "parent": "Container_Gate", "active": true, "rect": { "x": 0, "y": -43, "w": 24, "h": 35 } }
+{ "name": "Gate_10", "parent": "Container_Gate", "active": true, "rect": { "x": 0, "y": -53, "w": 24, "h": 35 } }
+{ "name": "Gate_11", "parent": "Container_Gate", "active": true, "rect": { "x": 0, "y": -63, "w": 24, "h": 35 } }
+{ "name": "Gate_12", "parent": "Container_Gate", "active": true, "rect": { "x": 0, "y": -73, "w": 24, "h": 35 } }
+{ "name": "Img_Top_Frame", "parent": "View_Race", "active": true, "rect": { "x": 0, "y": 170, "w": 800, "h": 170 } }
+{ "name": "Img_Bottom_Frame", "parent": "View_Race", "active": true, "rect": { "x": 0, "y": -170, "w": 800, "h": 170 } }
+{ "name": "UI_RaceInfo", "parent": "Stage_Race", "active": true, "rect": { "x": 0, "y": -135, "w": 360, "h": 370 } }
+{ "name": "UI_RaceControls", "parent": "UI_RaceInfo", "active": true, "rect": { "x": 0, "y": -165, "w": 360, "h": 40 } }
+{ "name": "Btn_StartRace", "parent": "UI_RaceControls", "active": true, "rect": { "x": -84, "y": 0, "w": 140, "h": 36 } }
+{ "name": "Text (TMP)", "parent": "Btn_StartRace", "active": true, "rect": { "x": 0, "y": 0, "w": 130, "h": 36 } }
+{ "name": "Btn_EndRace", "parent": "UI_RaceControls", "active": true, "rect": { "x": 87, "y": 0, "w": 140, "h": 36 } }
+{ "name": "Text (TMP)", "parent": "Btn_EndRace", "active": true, "rect": { "x": 0, "y": 0, "w": 130, "h": 36 } }
 
 //--- HIERARCHY_END ---
 
@@ -1734,7 +1735,8 @@ Rule: When discussing a feature, I must first locate all relevant code sections 
 // This section will only be appended with agreed-upon principles via the Principle Ratification protocol.
 
 // [4.1. Core Architecture]
-// *   **`Hierarchy Principle:`** The dynamic race objects are placed under a common parent, `Container_RaceSet`. As its children, it has each `Horse_` object and a `Container_MovableBG` which groups the moving background elements (goal, gates, etc.). This structure is considered correct as it allows for independent control over the horse group's movement and the background's movement based on their respective parent containers.
+Hierarchy Principle: A parent object, View_Race, contains all visual elements of the race. Under View_Race, there are two main containers: Container_RaceSet for all Horse_ objects, and Container_MovableBG for all scrolling background elements (goal, gates). This sibling relationship is correct because it allows the group of horses and the background to be moved independently, which is essential for implementing the lead-horse-relative camera system.
+
 // *   **`Simulation/Visualization Separation:`** The logic is clearly separated into two phases. `RaceSimulator` is solely responsible for calculating pure virtual coordinates (`PositionX`) without any consideration for screen layout. `RaceVisualizer` is responsible for taking that log and translating it into actual screen coordinates for display.
 
 // [4.2. Simulation Logic]
@@ -1756,3 +1758,7 @@ Rule:
 Decoupled Timescales: The race system operates on two independent timescales to balance simulation fidelity and player experience.
 Simulation Timescale: Determined by the parameters within RaceSimulator (e.g., base speed, random range, UNITS_PER_METRE). This is tuned to achieve the desired level of precision and realism, resulting in a specific simulation log length (total frames).
 Visualization Timescale: Determined by the FRAME_PLAYBACK_SPEED constant in RaceVisualizer. This is tuned to control the on-screen race duration for the player, independent of the simulation's internal framerate. It dictates how many simulation frames are skipped per rendered frame.
+
+Title: Zoom-Compensated Camera Principle
+Rule: The race camera system must compensate for changes in the view's scale. When theView_Raceobject is zoomed, the camera's follow-target threshold must be dynamically adjusted. This is achieved by calculating the visual offset caused by the scale change and applying it to the screen-space target position, ensuring the lead horse remains correctly framed.
+

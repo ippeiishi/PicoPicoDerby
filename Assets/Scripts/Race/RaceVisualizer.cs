@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -11,11 +12,19 @@ public class RaceVisualizer : MonoBehaviour {
     private const int PIXELS_PER_METRE = 10;
     private const float SIMULATION_SCALE_FACTOR = 10.0f;
     private const int FRAME_PLAYBACK_SPEED = 10;
+    private const int UNITS_PER_METRE = 100;
 
     private const int ZOOM_SECTION_UNITS = 50000;
     private const float ZOOM_MIN_SCALE = 0.75f;
     private const float ZOOM_MAX_SCALE = 1.5f;
     private const float ZOOM_OFFSET_MULTIPLIER = 150f;
+
+    private const int RAIL_ANIM_CYCLE_UNITS = 800;
+    private const int RAIL_ANIM_FRAME_COUNT = 4;
+
+    private const int COURSE_SECTION_UNITS = 50000;
+    private const float MAX_CURVE_DISPLACEMENT = 70f;
+    private const float Y_OFFSET_COMPENSATION_RATIO = 0.25f;
 
     [Header("Component References")]
     [SerializeField] private RectTransform _containerRaceSet;
@@ -24,6 +33,15 @@ public class RaceVisualizer : MonoBehaviour {
     [Header("Zoom Target")]
     [SerializeField] private RectTransform _viewRaceTransform;
 
+    [Header("Animation References")]
+    [SerializeField] private Image _imgOuterRail;
+    [SerializeField] private Image _imgInnerRail;
+    [SerializeField] private List<Sprite> _spritesOuterRail;
+    [SerializeField] private List<Sprite> _spritesInnerRail;
+
+    [Header("Curve References")]
+    [SerializeField] private List<CUIImage2> _curvedImages;
+    
     private List<RectTransform> _horseTransforms = new List<RectTransform>();
     private List<Canvas> _horseCanvases = new List<Canvas>();
 
@@ -34,6 +52,11 @@ public class RaceVisualizer : MonoBehaviour {
 
     private int _firstGoalFrame = -1;
     private int? _lockedFollowTargetUnits = null;
+    private int? _lockedRailAnimPositionUnits = null;
+
+    private bool[] _isCurveSection = { false, true, false, true, false, true, false, true, false, true };
+    private List<Vector3[]> _initialCurvePointsList = new List<Vector3[]>();
+    private List<Vector2> _initialAnchoredPositions = new List<Vector2>();
 
     private void Awake() {
         _horseTransforms.Clear();
@@ -43,6 +66,18 @@ public class RaceVisualizer : MonoBehaviour {
             if (child.name.StartsWith("Horse_")) {
                 _horseTransforms.Add(child.GetComponent<RectTransform>());
                 _horseCanvases.Add(child.GetComponent<Canvas>());
+            }
+        }
+
+        _initialCurvePointsList.Clear();
+        _initialAnchoredPositions.Clear();
+        foreach (var c_image in _curvedImages) {
+            if (c_image != null) {
+                if (c_image.RefCurves.Length == 2) {
+                    _initialCurvePointsList.Add((Vector3[])c_image.RefCurves[0].ControlPoints.Clone()); // Bottom
+                    _initialCurvePointsList.Add((Vector3[])c_image.RefCurves[1].ControlPoints.Clone()); // Top
+                }
+                _initialAnchoredPositions.Add(c_image.GetComponent<RectTransform>().anchoredPosition);
             }
         }
     }
@@ -55,6 +90,7 @@ public class RaceVisualizer : MonoBehaviour {
 
         _firstGoalFrame = -1;
         _lockedFollowTargetUnits = null;
+        _lockedRailAnimPositionUnits = null;
 
         if (result != null && result.GoalTimesInFrames.Any(t => t > 0)) {
             _firstGoalFrame = result.GoalTimesInFrames.Where(t => t > 0).Min();
@@ -81,6 +117,7 @@ public class RaceVisualizer : MonoBehaviour {
             }
         }
         
+        ResetAllCurves();
         UpdateHorsePositions();
     }
 
@@ -116,8 +153,7 @@ public class RaceVisualizer : MonoBehaviour {
             leadHorsePositionUnits = currentFrameLog.Max(state => state.PositionX);
         }
 
-        // ★変更: 最初にズームを計算してscale値を取得
-         float scale = UpdateRaceZoom(leadHorsePositionUnits);
+        float scale = UpdateRaceZoom(leadHorsePositionUnits);
         float zoomOffsetX = (ZOOM_MAX_SCALE - scale) * ZOOM_OFFSET_MULTIPLIER;
         float dynamicThresholdPx = 180f + (zoomOffsetX);
 
@@ -129,17 +165,18 @@ public class RaceVisualizer : MonoBehaviour {
             currentFollowTargetUnits = leadHorsePositionUnits - thresholdInUnits;
         }
 
-if (_lockedFollowTargetUnits == null && _firstGoalFrame != -1 && _currentFrame >= _firstGoalFrame) {
-    float startOffsetPx = _raceParameters.Distance * PIXELS_PER_METRE;
-    currentFollowTargetUnits = (int)((startOffsetPx - 180f) * SIMULATION_SCALE_FACTOR);
-    _lockedFollowTargetUnits = currentFollowTargetUnits;
-}
-
+        if (_lockedFollowTargetUnits == null && _firstGoalFrame != -1 && _currentFrame >= _firstGoalFrame) {
+            float startOffsetPx = _raceParameters.Distance * PIXELS_PER_METRE;
+            currentFollowTargetUnits = (int)((startOffsetPx - 180f) * SIMULATION_SCALE_FACTOR);
+            _lockedFollowTargetUnits = currentFollowTargetUnits;
+        }
 
         int finalFollowTargetUnits = _lockedFollowTargetUnits ?? currentFollowTargetUnits;
 
         UpdateRaceViewPosition(finalFollowTargetUnits);
         UpdateEachHorsePosition(currentFrameLog, finalFollowTargetUnits);
+        UpdateRailAnimation(leadHorsePositionUnits, leadHorseAbsolutePx, dynamicThresholdPx);
+        UpdateCurveEffect(leadHorsePositionUnits);
     }
 
     private void UpdateRaceViewPosition(int leadHorsePositionX) {
@@ -161,6 +198,86 @@ if (_lockedFollowTargetUnits == null && _firstGoalFrame != -1 && _currentFrame >
         }
     }
 
+    private void UpdateRailAnimation(int leadHorsePositionUnits, float leadHorseAbsolutePx, float dynamicThresholdPx) {
+        if (_spritesOuterRail.Count == 0 || _spritesInnerRail.Count == 0) return;
+        if (_lockedRailAnimPositionUnits != null) return;
+        if (leadHorseAbsolutePx < dynamicThresholdPx) return;
+
+        if (_firstGoalFrame != -1 && _currentFrame >= _firstGoalFrame) {
+            _lockedRailAnimPositionUnits = leadHorsePositionUnits;
+        }
+
+        int positionForAnim = _lockedRailAnimPositionUnits ?? leadHorsePositionUnits;
+        int unitsPerFrame = RAIL_ANIM_CYCLE_UNITS / RAIL_ANIM_FRAME_COUNT;
+        int animationIndex = (positionForAnim / unitsPerFrame) % RAIL_ANIM_FRAME_COUNT;
+
+        _imgOuterRail.sprite = _spritesOuterRail[animationIndex];
+        _imgInnerRail.sprite = _spritesInnerRail[animationIndex];
+    }
+
+    private void UpdateCurveEffect(int leadHorsePositionUnits) {
+        if (_curvedImages.Count == 0 || _raceParameters == null) return;
+
+        int totalDistanceUnits = _raceParameters.Distance * UNITS_PER_METRE;
+        int remainingUnits = totalDistanceUnits - leadHorsePositionUnits;
+        if (remainingUnits < 0) remainingUnits = 0;
+
+        int sectionIndex = remainingUnits / COURSE_SECTION_UNITS;
+        if (sectionIndex >= _isCurveSection.Length || !_isCurveSection[sectionIndex]) {
+            ResetAllCurves();
+            return;
+        }
+
+        float progressRatio = (float)(remainingUnits % COURSE_SECTION_UNITS) / COURSE_SECTION_UNITS;
+        float parabola = 1.0f - Mathf.Pow((progressRatio - 0.5f) * 2.0f, 2);
+        float currentDisplacement = MAX_CURVE_DISPLACEMENT * parabola;
+
+        for (int i = 0; i < _curvedImages.Count; i++) {
+            var c_image = _curvedImages[i];
+            if (c_image == null) continue;
+
+            // Y座標のズレを補正
+            var rectTransform = c_image.GetComponent<RectTransform>();
+            var initialPos = _initialAnchoredPositions[i];
+            float offsetY = currentDisplacement * Y_OFFSET_COMPENSATION_RATIO;
+            rectTransform.anchoredPosition = new Vector2(initialPos.x, initialPos.y - offsetY);
+
+            // 制御点を更新
+            var bottomCurve = c_image.RefCurves[0];
+            var topCurve = c_image.RefCurves[1];
+            var initialBottomPoints = _initialCurvePointsList[i * 2];
+            var initialTopPoints = _initialCurvePointsList[i * 2 + 1];
+
+            bottomCurve.ControlPoints[0].y = initialBottomPoints[0].y + currentDisplacement;
+            bottomCurve.ControlPoints[3].y = initialBottomPoints[3].y + currentDisplacement;
+            topCurve.ControlPoints[0].y = initialTopPoints[0].y + currentDisplacement;
+            topCurve.ControlPoints[3].y = initialTopPoints[3].y + currentDisplacement;
+
+            c_image.Refresh();
+        }
+    }
+
+    private void ResetAllCurves() {
+        if (_curvedImages.Count == 0 || _initialCurvePointsList.Count == 0) return;
+
+        for (int i = 0; i < _curvedImages.Count; i++) {
+            var c_image = _curvedImages[i];
+            if (c_image != null) {
+                // Y座標をリセット
+                c_image.GetComponent<RectTransform>().anchoredPosition = _initialAnchoredPositions[i];
+
+                // 制御点をリセット
+                var bottomPoints = _initialCurvePointsList[i * 2];
+                var topPoints = _initialCurvePointsList[i * 2 + 1];
+                for (int j = 0; j < c_image.RefCurves[0].ControlPoints.Length; j++) {
+                    c_image.RefCurves[0].ControlPoints[j] = bottomPoints[j];
+                    c_image.RefCurves[1].ControlPoints[j] = topPoints[j];
+                }
+                c_image.Refresh();
+            }
+        }
+    }
+
     private void SnapToFinishLinePhoto() {
         if (_result == null || _firstGoalFrame == -1 || _firstGoalFrame >= _result.RaceLog.Count) {
             return;
@@ -179,13 +296,12 @@ if (_lockedFollowTargetUnits == null && _firstGoalFrame != -1 && _currentFrame >
         UpdateRaceViewPosition(followTargetUnits);
         UpdateEachHorsePosition(finishFrameLog, followTargetUnits);
         _viewRaceTransform.localScale = new Vector3(1.5f, 1.5f, 1.0f);
-
     }
 
     private float UpdateRaceZoom(int leadHorsePositionUnits) {
         if (_viewRaceTransform == null || _raceParameters == null) return ZOOM_MAX_SCALE;
 
-        float totalDistanceUnits = _raceParameters.Distance * 100;
+        float totalDistanceUnits = _raceParameters.Distance * UNITS_PER_METRE;
         float remainingDistanceUnits = totalDistanceUnits - leadHorsePositionUnits;
 
         float scale = ZOOM_MAX_SCALE;
