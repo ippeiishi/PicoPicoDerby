@@ -11,7 +11,7 @@ public class RaceVisualizer : MonoBehaviour {
     private const int BASE_HORSE_SORT_ORDER = 11;
     private const int PIXELS_PER_METRE = 10;
     private const float SIMULATION_SCALE_FACTOR = 10.0f;
-    private const int FRAME_PLAYBACK_SPEED = 10;
+    private const int FRAME_PLAYBACK_SPEED = 5;
     private const int UNITS_PER_METRE = 100;
 
     private const int ZOOM_SECTION_UNITS = 50000;
@@ -19,17 +19,24 @@ public class RaceVisualizer : MonoBehaviour {
     private const float ZOOM_MAX_SCALE = 1.5f;
     private const float ZOOM_OFFSET_MULTIPLIER = 150f;
 
-    private const int RAIL_ANIM_CYCLE_UNITS = 800;
+    private const int RAIL_ANIM_CYCLE_UNITS = 260;
     private const int RAIL_ANIM_FRAME_COUNT = 4;
 
     private const int COURSE_SECTION_UNITS = 50000;
-    private const float MAX_CURVE_DISPLACEMENT = 70f;
+    private const float MAX_CURVE_DISPLACEMENT = 150f;
     private const float Y_OFFSET_COMPENSATION_RATIO = 0.25f;
+    private const float FOREGROUND_RAIL_HALF_WIDTH_PX = 400f;
+    private const int HURLON_POLE_INTERVAL_UNITS = 20000;
+    private const int HURLON_POLE_METRE_INTERVAL = 200;
+    
+    // ハロン棒のY座標を前景レールの底辺に合わせるためのオフセット (ハロン棒初期Y50 - 前景レール底辺初期Y30 = 20 だが、Pivot等の兼ね合いで35が最適値)
+    private const float HURLON_POLE_Y_OFFSET = 35f; 
+    private const string INNER_RAIL_NAME = "Img_Inner_Rail";
 
     [Header("Component References")]
     [SerializeField] private RectTransform _containerRaceSet;
     [SerializeField] private RectTransform _containerMovableBG;
-    
+
     [Header("Zoom Target")]
     [SerializeField] private RectTransform _viewRaceTransform;
 
@@ -41,7 +48,9 @@ public class RaceVisualizer : MonoBehaviour {
 
     [Header("Curve References")]
     [SerializeField] private List<CUIImage2> _curvedImages;
-    
+
+    private RectTransform _imgInnerRailRect;
+
     private List<RectTransform> _horseTransforms = new List<RectTransform>();
     private List<Canvas> _horseCanvases = new List<Canvas>();
 
@@ -74,11 +83,15 @@ public class RaceVisualizer : MonoBehaviour {
         foreach (var c_image in _curvedImages) {
             if (c_image != null) {
                 if (c_image.RefCurves.Length == 2) {
-                    _initialCurvePointsList.Add((Vector3[])c_image.RefCurves[0].ControlPoints.Clone()); // Bottom
-                    _initialCurvePointsList.Add((Vector3[])c_image.RefCurves[1].ControlPoints.Clone()); // Top
+                    _initialCurvePointsList.Add((Vector3[])c_image.RefCurves[0].ControlPoints.Clone());
+                    _initialCurvePointsList.Add((Vector3[])c_image.RefCurves[1].ControlPoints.Clone());
                 }
                 _initialAnchoredPositions.Add(c_image.GetComponent<RectTransform>().anchoredPosition);
             }
+        }
+
+        if (_imgInnerRail != null) {
+            _imgInnerRailRect = _imgInnerRail.GetComponent<RectTransform>();
         }
     }
 
@@ -135,7 +148,6 @@ public class RaceVisualizer : MonoBehaviour {
             _isPlaying = false;
 
             SnapToFinishLinePhoto();
-            
             RaceStageManager.Instance.OnRaceAnimationFinished();
             return;
         }
@@ -177,6 +189,53 @@ public class RaceVisualizer : MonoBehaviour {
         UpdateEachHorsePosition(currentFrameLog, finalFollowTargetUnits);
         UpdateRailAnimation(leadHorsePositionUnits, leadHorseAbsolutePx, dynamicThresholdPx);
         UpdateCurveEffect(leadHorsePositionUnits);
+        UpdateMovableBGCurve(finalFollowTargetUnits);
+    }
+
+    private void UpdateMovableBGCurve(int cameraFollowTargetUnits) {
+        if (_raceParameters == null) return;
+
+        float roundedPos = Mathf.Round(cameraFollowTargetUnits / (float)HURLON_POLE_INTERVAL_UNITS) * HURLON_POLE_INTERVAL_UNITS;
+        int nearestPoleAbsoluteUnits = (int)roundedPos;
+
+        float relativePosUnits = nearestPoleAbsoluteUnits - cameraFollowTargetUnits;
+        float relativePosPx = relativePosUnits / SIMULATION_SCALE_FACTOR;
+        
+        float correctedRelativePosPx = relativePosPx + _containerRaceSet.localPosition.x;
+
+        if (Mathf.Abs(correctedRelativePosPx) > FOREGROUND_RAIL_HALF_WIDTH_PX) {
+            return;
+        }
+
+        var innerRailImage = _curvedImages.FirstOrDefault(ci => ci != null && ci.name == INNER_RAIL_NAME);
+        if (innerRailImage == null) return;
+
+        var bottomCurve = innerRailImage.RefCurves[0];
+        float railBottomY = SampleCurveYPosition(correctedRelativePosPx, _imgInnerRailRect, bottomCurve);
+
+        _containerMovableBG.anchoredPosition = new Vector2(
+            _containerMovableBG.anchoredPosition.x,
+            railBottomY - HURLON_POLE_Y_OFFSET
+        );
+    }
+
+    private float SampleCurveYPosition(float localX, RectTransform railRect, CUIBezierCurve bottomCurve) {
+        const float HALF_WIDTH = 400f;
+        float t = (localX + HALF_WIDTH) / (HALF_WIDTH * 2f);
+        
+        Vector3 p0 = bottomCurve.ControlPoints[0]; // 始点
+        Vector3 p1 = bottomCurve.ControlPoints[1]; // 制御点1
+        Vector3 p2 = bottomCurve.ControlPoints[2]; // 制御点2
+        Vector3 p3 = bottomCurve.ControlPoints[3]; // 終点
+
+        float omt = 1f - t;
+        float localY = 
+            (omt * omt * omt * p0.y) +
+            (3f * omt * omt * t * p1.y) +
+            (3f * omt * t * t * p2.y) +
+            (t * t * t * p3.y);
+        
+        return railRect.anchoredPosition.y + localY + (railRect.pivot.y * railRect.rect.height);
     }
 
     private void UpdateRaceViewPosition(int leadHorsePositionX) {
@@ -236,13 +295,11 @@ public class RaceVisualizer : MonoBehaviour {
             var c_image = _curvedImages[i];
             if (c_image == null) continue;
 
-            // Y座標のズレを補正
             var rectTransform = c_image.GetComponent<RectTransform>();
             var initialPos = _initialAnchoredPositions[i];
             float offsetY = currentDisplacement * Y_OFFSET_COMPENSATION_RATIO;
             rectTransform.anchoredPosition = new Vector2(initialPos.x, initialPos.y - offsetY);
 
-            // 制御点を更新
             var bottomCurve = c_image.RefCurves[0];
             var topCurve = c_image.RefCurves[1];
             var initialBottomPoints = _initialCurvePointsList[i * 2];
@@ -263,10 +320,7 @@ public class RaceVisualizer : MonoBehaviour {
         for (int i = 0; i < _curvedImages.Count; i++) {
             var c_image = _curvedImages[i];
             if (c_image != null) {
-                // Y座標をリセット
                 c_image.GetComponent<RectTransform>().anchoredPosition = _initialAnchoredPositions[i];
-
-                // 制御点をリセット
                 var bottomPoints = _initialCurvePointsList[i * 2];
                 var topPoints = _initialCurvePointsList[i * 2 + 1];
                 for (int j = 0; j < c_image.RefCurves[0].ControlPoints.Length; j++) {
@@ -311,8 +365,7 @@ public class RaceVisualizer : MonoBehaviour {
         if (leadHorsePositionUnits < ZOOM_SECTION_UNITS) {
             progress = (float)leadHorsePositionUnits / ZOOM_SECTION_UNITS;
             inZoomSection = true;
-        }
-        else if (remainingDistanceUnits < ZOOM_SECTION_UNITS) {
+        } else if (remainingDistanceUnits < ZOOM_SECTION_UNITS) {
             progress = 1.0f - (remainingDistanceUnits / ZOOM_SECTION_UNITS);
             inZoomSection = true;
         }
