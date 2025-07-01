@@ -111,6 +111,13 @@ b. Required (Flow Control Checks): Retain null checks when the null state is a v
 Real-time Information Retrieval: For any query, first consult the [PROJECT_TECHNOLOGY_STACK].
 a. Version-Specific Queries: When a query relates to a component listed in the stack (e.g., Firebase Auth features, Unity API), the real-time web search MUST prioritize documentation and community discussions specific to the defined version.
 b. General Problem-Solving: For general issues (e.g., error messages, algorithmic problems), a search may target broader, more current sources. However, any proposed solution MUST be analyzed for compatibility with the [PROJECT_TECHNOLOGY_STACK] before being presented. The primary goal is to provide solutions that are valid for the project's environment, not just the latest available technology.
+RACE_VISUALIZATION_MODEL: The race visualization system is based on a layered approach to create a dynamic 3D perspective effect.
+a. Foreground Curve System: Stationary UI elements (e.g., rails) are curved in place. Their curvature is determined by the overall race progress (e.g., distance remaining to goal). This creates the illusion of the entire track bending.
+b. Background Curve System: Scrolling background elements (e.g., furlong poles within `Container_MovableBG`) are curved to match the foreground. The Y-position of the entire `Container_MovableBG` is dynamically adjusted each frame. This adjustment is calculated by:
+    i. Identifying the screen-space X-position of the furlong pole nearest to the center of the view.
+    ii. Sampling the precise Y-coordinate of the foreground rail's bottom bezier curve at that corresponding X-position.
+    iii. Applying the sampled Y-coordinate (with an initial position offset) to the `Container_MovableBG`.
+This ensures the background elements perfectly trace the foreground curve as they scroll past, creating a cohesive and realistic visual effect.
 [RACE_LOGIC_SPECIFICATIONS]
 // --- PRIORITY_DECLARATION ---
 // The rules within this [RACE_LOGIC_SPECIFICATIONS] section, especially 
@@ -133,11 +140,13 @@ b. General Problem-Solving: For general issues (e.g., error messages, algorithmi
 //--- HIERARCHY_START ---
 { "name": "Stage_Race", "parent": null, "active": true, "rect": { "x": 0, "y": 0, "w": 360, "h": 640 } }
 { "name": "View_Race", "parent": "Stage_Race", "active": true, "rect": { "x": 0, "y": 190, "w": 360, "h": 280 } }
-{ "name": "Img_Inner_Course", "parent": "View_Race", "active": true, "rect": { "x": 0, "y": -38, "w": 800, "h": 185 } }
-{ "name": "Img_Outer_Course", "parent": "View_Race", "active": true, "rect": { "x": 0, "y": 90, "w": 800, "h": 60 } }
-{ "name": "Img_Outer_Rail", "parent": "View_Race", "active": true, "rect": { "x": 0, "y": 55, "w": 800, "h": 10 } }
-{ "name": "Img_Middle_BushArea", "parent": "View_Race", "active": true, "rect": { "x": 0, "y": 45, "w": 800, "h": 10 } }
-{ "name": "Img_Inner_Rail", "parent": "View_Race", "active": true, "rect": { "x": 0, "y": 35, "w": 800, "h": 10 } }
+{ "name": "Img_Outer_Course", "parent": "View_Race", "active": true, "rect": { "x": 0, "y": 84, "w": 800, "h": 93 } }
+{ "name": "Img_Inner_Course", "parent": "View_Race", "active": true, "rect": { "x": 0, "y": -45, "w": 800, "h": 180 } }
+{ "name": "BottomRefCurve", "parent": "Img_Inner_Course", "active": true }
+{ "name": "TopRefCurve", "parent": "Img_Inner_Course", "active": true }
+{ "name": "Img_Outer_Rail", "parent": "View_Race", "active": true, "rect": { "x": 0, "y": 47, "w": 800, "h": 20 } }
+{ "name": "BottomRefCurve", "parent": "Img_Outer_Rail", "active": true }
+{ "name": "TopRefCurve", "parent": "Img_Outer_Rail", "active": true }
 { "name": "Container_RaceSet", "parent": "View_Race", "active": true, "rect": { "x": 0, "y": 0, "w": 360, "h": 280 } }
 { "name": "Horse_0", "parent": "Container_RaceSet", "active": true, "rect": { "x": 0, "y": 27, "w": 24, "h": 10 } }
 { "name": "Shadow", "parent": "Horse_0", "active": true, "rect": { "x": 0, "y": 0, "w": 24, "h": 5 } }
@@ -199,7 +208,7 @@ b. General Problem-Solving: For general issues (e.g., error messages, algorithmi
 { "name": "Body", "parent": "Horse_11", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
 { "name": "Hair", "parent": "Horse_11", "active": true, "rect": { "x": 0, "y": 12, "w": 24, "h": 24 } }
 { "name": "Eye", "parent": "Horse_11", "active": true, "rect": { "x": 3, "y": 15, "w": 2, "h": 2 } }
-{ "name": "Container_MovableBG", "parent": "Container_RaceSet", "active": true, "rect": { "x": 0, "y": 0, "w": 100, "h": 100 } }
+{ "name": "Container_MovableBG", "parent": "Container_RaceSet", "active": true, "rect": { "x": 0, "y": 0, "w": 800, "h": 10 } }
 { "name": "Goal", "parent": "Container_MovableBG", "active": true, "rect": { "x": 0, "y": 58, "w": 33, "h": 56 } }
 { "name": "Container_Gate", "parent": "Container_MovableBG", "active": true, "rect": { "x": 0, "y": 0, "w": 100, "h": 100 } }
 { "name": "Gate_0", "parent": "Container_Gate", "active": true, "rect": { "x": 0, "y": 47, "w": 24, "h": 35 } }
@@ -215,6 +224,9 @@ b. General Problem-Solving: For general issues (e.g., error messages, algorithmi
 { "name": "Gate_10", "parent": "Container_Gate", "active": true, "rect": { "x": 0, "y": -53, "w": 24, "h": 35 } }
 { "name": "Gate_11", "parent": "Container_Gate", "active": true, "rect": { "x": 0, "y": -63, "w": 24, "h": 35 } }
 { "name": "Gate_12", "parent": "Container_Gate", "active": true, "rect": { "x": 0, "y": -73, "w": 24, "h": 35 } }
+{ "name": "Img_Inner_Rail", "parent": "View_Race", "active": true, "rect": { "x": 0, "y": 35, "w": 800, "h": 10 } }
+{ "name": "BottomRefCurve", "parent": "Img_Inner_Rail", "active": true }
+{ "name": "TopRefCurve", "parent": "Img_Inner_Rail", "active": true }
 { "name": "Img_Top_Frame", "parent": "View_Race", "active": true, "rect": { "x": 0, "y": 170, "w": 800, "h": 170 } }
 { "name": "Img_Bottom_Frame", "parent": "View_Race", "active": true, "rect": { "x": 0, "y": -170, "w": 800, "h": 170 } }
 { "name": "UI_RaceInfo", "parent": "Stage_Race", "active": true, "rect": { "x": 0, "y": -135, "w": 360, "h": 370 } }

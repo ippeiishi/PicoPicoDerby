@@ -23,8 +23,11 @@ public class RaceStageManager : MonoBehaviour {
     private const int PIXELS_PER_METRE = 10;
 
     private void Awake() {
-        if (Instance == null) { Instance = this; }
-        else { Destroy(gameObject); }
+        if (Instance == null) {
+            Instance = this;
+        } else {
+            Destroy(gameObject);
+        }
 
         _btnStartRace.onClick.AddListener(StartRaceAnimation);
         _btnEndRace.onClick.AddListener(EndRace);

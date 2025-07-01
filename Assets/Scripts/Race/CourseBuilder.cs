@@ -1,7 +1,8 @@
 using UnityEngine;
 using TMPro;
 
-public class CourseBuilder : MonoBehaviour {
+public class CourseBuilder : MonoBehaviour
+{
     [Header("Prefabs")]
     [SerializeField] private GameObject _prefabHurlonPole;
 
@@ -12,8 +13,10 @@ public class CourseBuilder : MonoBehaviour {
     private const int METRES_PER_POLE = 200;
     private const int POLE_LABEL_MULTIPLIER = 2;
 
-    void Start() {
-        for (var i = 1; i < 40; i++) {
+    void Start()
+    {
+        for (var i = 1; i < 40; i++)
+        {
             float poleXPosition = i * -METRES_PER_POLE * PIXELS_PER_METRE;
             GameObject poleInstance = Instantiate(_prefabHurlonPole, _containerHurlonPole);
             RectTransform poleRect = poleInstance.GetComponent<RectTransform>();
@@ -22,4 +25,16 @@ public class CourseBuilder : MonoBehaviour {
             poleText.text = (i * POLE_LABEL_MULTIPLIER).ToString();
         }
     }
+    
+    public void AdjustPoleTextDirection(float directionMultiplier) {
+    foreach (Transform child in _containerHurlonPole) {
+        var text = child.GetComponentInChildren<TextMeshProUGUI>();
+        if (text != null) {
+            Vector3 localScale = text.transform.localScale;
+            localScale.x = Mathf.Abs(localScale.x) * directionMultiplier;
+            text.transform.localScale = localScale;
+        }
+    }
+}
+
 }

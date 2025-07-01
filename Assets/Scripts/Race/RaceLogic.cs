@@ -121,23 +121,6 @@ public class RaceSimulator {
             }
         }
 
-        Debug.Log("--- Race Simulation Results ---");
-        for (int i = 0; i < sortedHorseIndices.Count; i++) {
-            int rank = i + 1;
-            int horseIndex = sortedHorseIndices[i];
-            int goalFrame = result.GoalTimesInFrames[horseIndex];
-            int margin = result.FinishMarginsInUnits[horseIndex];
 
-            float totalSeconds = (float)goalFrame / FPS;
-            int minutes = (int)totalSeconds / 60;
-            int seconds = (int)totalSeconds % 60;
-            int milliseconds = (int)((totalSeconds - (minutes * 60 + seconds)) * 1000);
-            string timeFormatted = $"{minutes:00}:{seconds:00}.{milliseconds:000}";
-
-            string marginText = (rank < sortedHorseIndices.Count) ? $"{margin} units" : "N/A";
-
-            Debug.Log($"{rank}着 > {horseIndex}レーンの馬....{timeFormatted} / 後続との差: {marginText}");
-        }
-        Debug.Log("-----------------------------");
     }
 }

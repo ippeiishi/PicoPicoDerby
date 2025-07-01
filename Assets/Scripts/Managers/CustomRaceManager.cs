@@ -53,11 +53,35 @@ public class CustomRaceManager : MonoBehaviour {
         _backToRaceSettingsButton.onClick.RemoveListener(NavigateToRaceSettings);
         _goToRaceButton.onClick.RemoveListener(NavigateToRaceScene);
     }
+void OnEnable() {
+    _panelRaceSettings.SetActive(true);
+    _panelHorseSelection.SetActive(false);
 
-    void OnEnable() {
-        _panelRaceSettings.SetActive(true);
-        _panelHorseSelection.SetActive(false);
-    }
+    // トグルの現在状態に応じてRaceParametersを初期化
+    if (_toggleTurf.isOn) OnTrackTypeChanged(TrackType.Turf);
+    if (_toggleDirt.isOn) OnTrackTypeChanged(TrackType.Dirt);
+
+    if (_toggleLeft.isOn) OnDirectionChanged(TrackDirection.Left);
+    if (_toggleRight.isOn) OnDirectionChanged(TrackDirection.Right);
+
+    if (_toggle1200m.isOn) OnDistanceChanged(1200);
+    if (_toggle1600m.isOn) OnDistanceChanged(1600);
+    if (_toggle2000m.isOn) OnDistanceChanged(2000);
+    if (_toggle2400m.isOn) OnDistanceChanged(2400);
+    if (_toggle3000m.isOn) OnDistanceChanged(3000);
+
+    if (_toggleSunny.isOn) OnWeatherChanged(WeatherType.Sunny);
+    if (_toggleCloudy.isOn) OnWeatherChanged(WeatherType.Cloudy);
+    if (_toggleRain.isOn) OnWeatherChanged(WeatherType.Rain);
+    if (_toggleStorm.isOn) OnWeatherChanged(WeatherType.Storm);
+    if (_toggleSnow.isOn) OnWeatherChanged(WeatherType.Snow);
+
+    if (_toggleFirm.isOn) OnTrackConditionChanged(TrackCondition.Firm);
+    if (_toggleGood.isOn) OnTrackConditionChanged(TrackCondition.Good);
+    if (_toggleYielding.isOn) OnTrackConditionChanged(TrackCondition.Yielding);
+    if (_toggleSoft.isOn) OnTrackConditionChanged(TrackCondition.Soft);
+}
+
 
     private void RegisterToggleListeners() {
         _toggleTurf.onValueChanged.AddListener(isOn => { if (isOn) OnTrackTypeChanged(TrackType.Turf); });
