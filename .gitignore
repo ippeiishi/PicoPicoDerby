@@ -1,3 +1,4 @@
+# ===== Unity Build & Cache =====
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
@@ -7,8 +8,7 @@
 [Mm]emoryCaptures/
 /ForAndroid/
 
-
-# VS/JetBrains
+# ===== IDE / Editor / Tooling =====
 *.csproj
 *.unityproj
 *.sln
@@ -19,9 +19,26 @@
 *.pdb
 *.mdb
 
-# OS junk
+# ===== OS Junk =====
 .DS_Store
 
-# Addressables
+# ===== Unity Addressables =====
 *.bin
 *.link.xml
+
+# ===== 🔐 Secrets / Credentials (追加) =====
+*.env
+*.p12               # iOS 配布証明書
+*.keystore          # Android 署名鍵
+**/Secrets/**       # 秘密用の任意ディレクトリ
+*.key
+*.pem
+*.jks
+
+# ===== 🔥 Firebase / Google / Analytics (追加) =====
+firebase.json
+google-services.json
+GoogleService-Info.plist
+*.report
+*.analytics
+*.playstream
