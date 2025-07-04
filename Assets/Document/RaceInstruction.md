@@ -65,6 +65,8 @@ Newtonsoft Json: 3.2.1 (com.unity.nuget.newtonsoft-json)
 This section serves as a historical log of major development milestones, not just a summary of the latest state. New entries should be prepended to the list, ensuring that the most recent activity is at the top while preserving the full history of completed milestones. It should answer the question: "What major features have been completed to get to this point?"
 (Current) Established the core race simulation logic and the UI/visualization architecture for the race scene. Implemented a UIManager for centralized control of global UI elements.
 (Previous) Standardized the entire UI hierarchy and naming convention. Implemented the Lobby stage UI with a tab-switching system and a global, event-driven screen transition (iris wipe) system.
+
+
 [PROJECT_ARCHETYPE_SUMMARY]
 SCENE_ARCHITECTURE: Single-Scene.
 DI_MODEL: Manual Singleton (ClassName.Instance).
@@ -111,13 +113,7 @@ b. Required (Flow Control Checks): Retain null checks when the null state is a v
 Real-time Information Retrieval: For any query, first consult the [PROJECT_TECHNOLOGY_STACK].
 a. Version-Specific Queries: When a query relates to a component listed in the stack (e.g., Firebase Auth features, Unity API), the real-time web search MUST prioritize documentation and community discussions specific to the defined version.
 b. General Problem-Solving: For general issues (e.g., error messages, algorithmic problems), a search may target broader, more current sources. However, any proposed solution MUST be analyzed for compatibility with the [PROJECT_TECHNOLOGY_STACK] before being presented. The primary goal is to provide solutions that are valid for the project's environment, not just the latest available technology.
-RACE_VISUALIZATION_MODEL: The race visualization system is based on a layered approach to create a dynamic 3D perspective effect.
-a. Foreground Curve System: Stationary UI elements (e.g., rails) are curved in place. Their curvature is determined by the overall race progress (e.g., distance remaining to goal). This creates the illusion of the entire track bending.
-b. Background Curve System: Scrolling background elements (e.g., furlong poles within `Container_MovableBG`) are curved to match the foreground. The Y-position of the entire `Container_MovableBG` is dynamically adjusted each frame. This adjustment is calculated by:
-    i. Identifying the screen-space X-position of the furlong pole nearest to the center of the view.
-    ii. Sampling the precise Y-coordinate of the foreground rail's bottom bezier curve at that corresponding X-position.
-    iii. Applying the sampled Y-coordinate (with an initial position offset) to the `Container_MovableBG`.
-This ensures the background elements perfectly trace the foreground curve as they scroll past, creating a cohesive and realistic visual effect.
+
 [RACE_LOGIC_SPECIFICATIONS]
 // --- PRIORITY_DECLARATION ---
 // The rules within this [RACE_LOGIC_SPECIFICATIONS] section, especially 

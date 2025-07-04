@@ -2,31 +2,21 @@ using System;
 using Newtonsoft.Json;
 
 /// <summary>
-/// 競走馬の基本的なデータを保持するクラス。
-/// これはプロトタイピング用の最小構成です。
+/// レース用に必要な最低限の能力値を持つ競走馬データクラス。
+/// プロトタイピング・シミュレーション用の最小構成。
 /// </summary>
 [Serializable]
 public class HorseData {
-    [JsonProperty("uid")]
     public string Uid { get; set; }
-
-    [JsonProperty("name")]
     public string Name { get; set; }
 
-    [JsonProperty("base_speed")]
-    public int BaseSpeed { get; set; }
-
-    [JsonProperty("base_stamina")]
-    public int BaseStamina { get; set; }
-
-    [JsonProperty("base_guts")]
-    public int BaseGuts { get; set; }
-
-    [JsonProperty("base_mentality")]
-    public int BaseMentality { get; set; }
+    public int sp { get; set; }  // boost加速度
+    public int st { get; set; }  // boost回数
+    public int gt { get; set; }  // 根性
+    public int mn { get; set; }  // 気性（出遅れ/かかり）
+    public int ft { get; set; }  // 脚質（0〜3）
 
     public HorseData() {
-        // 新規作成時にユニークIDを自動で割り振る
         Uid = Guid.NewGuid().ToString();
     }
 }

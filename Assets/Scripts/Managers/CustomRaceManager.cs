@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using System.Linq;
 
 public class CustomRaceManager : MonoBehaviour {
     [Header("UI Panels")]
@@ -120,24 +121,25 @@ void OnEnable() {
         _panelRaceSettings.SetActive(true);
     }
 
-    private void NavigateToRaceScene() {
-        Debug.Log("[CustomRaceManager] Preparing race...");
+private void NavigateToRaceScene() {
+    Debug.Log("[CustomRaceManager] Preparing race...");
 
-        var contenders = new List<HorseData>();
-        for (int i = 0; i < 5; i++) {
-            contenders.Add(new HorseData { BaseSpeed = 100 });
-        }
+    var contenders = _mockHorseDatabase.Take(5).ToList();
 
-        LobbyManager.Instance.SwitchMode(LobbyManager.GameMode.Race);
-        RaceStageManager.Instance.PrepareRace(_raceParameters, contenders);    }
+    LobbyManager.Instance.SwitchMode(LobbyManager.GameMode.Race);
 
-    private void CreateMockHorseDatabase() {
-        _mockHorseDatabase = new List<HorseData> {
-            new HorseData { Uid = "mock-001", Name = "サイレンススズカ", BaseSpeed = 120, BaseStamina = 85, BaseGuts = 90, BaseMentality = 70 },
-            new HorseData { Uid = "mock-002", Name = "ディープインパクト", BaseSpeed = 110, BaseStamina = 110, BaseGuts = 95, BaseMentality = 80 },
-            new HorseData { Uid = "mock-003", Name = "オグリキャップ", BaseSpeed = 100, BaseStamina = 100, BaseGuts = 120, BaseMentality = 90 },
-            new HorseData { Uid = "mock-004", Name = "アーモンドアイ", BaseSpeed = 115, BaseStamina = 95, BaseGuts = 85, BaseMentality = 100 },
-            new HorseData { Uid = "mock-005", Name = "キタサンブラック", BaseSpeed = 95, BaseStamina = 115, BaseGuts = 110, BaseMentality = 85 }
-        };
-    }
+    // PrepareRace は1回だけ
+    RaceStageManager.Instance.PrepareRace(_raceParameters, contenders);
+}
+
+private void CreateMockHorseDatabase() {
+    _mockHorseDatabase = new List<HorseData> {
+        new HorseData { Uid = "mock-001", Name = "サイレンススズカ", sp = 100, st = 0, gt = 100, mn = 100, ft = 0 },
+        new HorseData { Uid = "mock-002", Name = "ディープインパクト", sp = 100, st = 0, gt = 100, mn = 100, ft = 1 },
+        new HorseData { Uid = "mock-003", Name = "オグリキャップ",     sp = 100, st = 0, gt = 100, mn = 100, ft = 2 },
+        new HorseData { Uid = "mock-004", Name = "アーモンドアイ",     sp = 100, st = 0, gt = 100, mn = 100, ft = 3 },
+        new HorseData { Uid = "mock-005", Name = "キタサンブラック",   sp = 100, st = 0, gt = 100, mn = 100, ft = 4 }
+    };
+}
+
 }

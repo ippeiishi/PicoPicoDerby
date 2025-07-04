@@ -60,28 +60,30 @@ public class RaceStageManager : MonoBehaviour {
     //================================================================================
     // publicメソッド
     //================================================================================
-    public void PrepareRace(RaceParameters raceParams, List<HorseData> contenders) {
-        _raceParameters = raceParams;
-        _btnSkip.gameObject.SetActive(false);
-        _btnSkipShown = false;
+public void PrepareRace(RaceParameters raceParams, List<HorseData> contenders) {
+    _raceParameters = raceParams;
+    _btnSkip.gameObject.SetActive(false);
+    _btnSkipShown = false;
 
-        float startOffsetPx = raceParams.Distance * PIXELS_PER_METRE;
-        _containerMovableBG.localPosition = new Vector2(startOffsetPx, 0);
-        _containerGate.localPosition = new Vector2(startOffsetPx * -1, 0);
+    float startOffsetPx = raceParams.Distance * PIXELS_PER_METRE;
+    _containerMovableBG.localPosition = new Vector2(startOffsetPx, 0);
+    _containerGate.localPosition = new Vector2(startOffsetPx * -1, 0);
 
-        var input = new RaceSimulationInput {
-            HorseCount = contenders.Count,
-            DistanceInMetres = raceParams.Distance
-        };
-
+    var input = new RaceSimulationInput {
+        HorseCount = contenders.Count,
+        DistanceInMetres = raceParams.Distance,
+        Horses = contenders
+    };
         var simulator = new RaceSimulator(input);
         _raceResult = simulator.RunSimulation();
 
+        var boostLog = string.Join("b|", contenders.Select(h => RaceSimulator.CalculateBoostCount(h.st).ToString()));
+        Debug.Log($"Boost Counts: {boostLog}b");
         string goalFramesLog = string.Join("f|", _raceResult.GoalTimesInFrames.Select(f => f.ToString()));
         Debug.Log($"Goal Frames: {goalFramesLog}f");
+         _raceVisualizer.PrepareVisualization(_raceResult, _raceParameters);
+}
 
-        _raceVisualizer.PrepareVisualization(_raceResult, _raceParameters);
-    }
 
     public void StartRaceAnimation() {
         Debug.Log("Race animation started.");
