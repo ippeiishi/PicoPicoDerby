@@ -14,7 +14,7 @@ public class RaceVisualizer : MonoBehaviour {
     private const int BASE_HORSE_SORT_ORDER = 11;
     private const int PIXELS_PER_METRE = 10;
     private const float SIMULATION_SCALE_FACTOR = 10.0f;
-    private const int FRAME_PLAYBACK_SPEED = 5;
+    private const int FRAME_PLAYBACK_SPEED = 6;
     private const int UNITS_PER_METRE = 100;
     private const int FINAL_STRETCH_METRES = 500;
     private const int FINAL_STRETCH_UNITS = FINAL_STRETCH_METRES * UNITS_PER_METRE;
@@ -27,7 +27,7 @@ public class RaceVisualizer : MonoBehaviour {
 
     // --- Animation ---
     private const int RAIL_ANIM_CYCLE_UNITS = 260;
-    private const int RAIL_ANIM_FRAME_COUNT = 4;
+    private const int RAIL_ANIM_FRAME_COUNT = 4;// 3フレームで1サイクル
 
     // --- Curve ---
     private const int COURSE_SECTION_UNITS = 50000;

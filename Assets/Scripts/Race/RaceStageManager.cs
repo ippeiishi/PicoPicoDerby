@@ -77,8 +77,6 @@ public void PrepareRace(RaceParameters raceParams, List<HorseData> contenders) {
         var simulator = new RaceSimulator(input);
         _raceResult = simulator.RunSimulation();
 
-        var boostLog = string.Join("b|", contenders.Select(h => RaceSimulator.CalculateBoostCount(h.st).ToString()));
-        Debug.Log($"Boost Counts: {boostLog}b");
         string goalFramesLog = string.Join("f|", _raceResult.GoalTimesInFrames.Select(f => f.ToString()));
         Debug.Log($"Goal Frames: {goalFramesLog}f");
          _raceVisualizer.PrepareVisualization(_raceResult, _raceParameters);

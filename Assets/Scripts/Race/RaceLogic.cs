@@ -2,11 +2,10 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class RaceSimulationInput
-{
+public class RaceSimulationInput {
     public int HorseCount { get; set; }
     public int DistanceInMetres { get; set; }
-    public List<HorseData> Horses { get; set; } // ←追加
+    public List<HorseData> Horses { get; set; }
 }
 
 public class FrameHorseState {
@@ -29,76 +28,58 @@ public class RaceSimulationResult {
         }
     }
 }
+
 public class RaceSimulator {
-    private const int UNITS_PER_METRE = 100;
-    private const int FPS = 30;
-    private const int SIMULATION_EXTENSION_UNITS = 2000; // ゴール後、画面外に消えるまでシミュレーションを延長する距離
-    // デバッグ用の固定スピード
-    public int base_sp = 24;
-    private const int SPEED_RANDOM_RANGE = 6;
+    private const int UNITS_PER_METRE = 500;
+    private const int SIMULATION_EXTENSION_UNITS = 10000;
+    public int base_sp = 100;
 
     private readonly RaceSimulationInput _input;
 
     public RaceSimulator(RaceSimulationInput input) {
         _input = input;
     }
-public static int CalculateBoostCount(int st) {
-    int raw = (int)(st / 20f) + 3;
-    return Mathf.Min(raw, 10); // 最大値は10
-}
 
-private int MetresToPixels(int metres){
-    const int PIXELS_PER_METRE = 10;
-    return metres * PIXELS_PER_METRE;
-}
-
-
-
-    public RaceSimulationResult RunSimulation()
-    {
+    public RaceSimulationResult RunSimulation() {
         int totalDistanceUnits = _input.DistanceInMetres * UNITS_PER_METRE;
         int finalDistanceUnits = totalDistanceUnits + SIMULATION_EXTENSION_UNITS;
         var result = new RaceSimulationResult(_input.HorseCount);
 
         var currentStates = new List<FrameHorseState>();
-        for (int i = 0; i < _input.HorseCount; i++)
-        {
+        var totalPositions = new int[_input.HorseCount];
+
+        for (int i = 0; i < _input.HorseCount; i++) {
             currentStates.Add(new FrameHorseState { PositionX = 0, PositionY = 0, SortingOrder = 0 });
         }
 
-        result.RaceLog.Add(new List<FrameHorseState>(currentStates.Select(s => new FrameHorseState { PositionX = s.PositionX, PositionY = s.PositionY, SortingOrder = s.SortingOrder })));
+        result.RaceLog.Add(currentStates.Select(s => new FrameHorseState {
+            PositionX = s.PositionX, PositionY = s.PositionY, SortingOrder = s.SortingOrder
+        }).ToList());
 
         int currentFrame = 0;
         int slowestHorsePosition = 0;
 
-        while (slowestHorsePosition < finalDistanceUnits)
-        {
+        while (slowestHorsePosition < finalDistanceUnits) {
             currentFrame++;
-
             var frameLog = new List<FrameHorseState>();
             slowestHorsePosition = int.MaxValue;
 
-            for (int i = 0; i < _input.HorseCount; i++)
-            {
-                //int frameDistance = base_sp + Random.Range(0, SPEED_RANDOM_RANGE + 1);
-                int frameDistance = base_sp;
-                currentStates[i].PositionX += frameDistance;
+            for (int i = 0; i < _input.HorseCount; i++) {
+                currentStates[i].PositionX += base_sp;
+                totalPositions[i] += base_sp;
 
-                if (result.GoalTimesInFrames[i] == -1 && currentStates[i].PositionX >= totalDistanceUnits)
-                {
+                if (result.GoalTimesInFrames[i] == -1 && currentStates[i].PositionX >= totalDistanceUnits) {
                     currentStates[i].PositionX = totalDistanceUnits;
                     result.GoalTimesInFrames[i] = currentFrame;
                 }
 
-                frameLog.Add(new FrameHorseState
-                {
+                frameLog.Add(new FrameHorseState {
                     PositionX = currentStates[i].PositionX,
                     PositionY = currentStates[i].PositionY,
                     SortingOrder = currentStates[i].SortingOrder
                 });
 
-                if (currentStates[i].PositionX < slowestHorsePosition)
-                {
+                if (currentStates[i].PositionX < slowestHorsePosition) {
                     slowestHorsePosition = currentStates[i].PositionX;
                 }
             }
@@ -106,42 +87,20 @@ private int MetresToPixels(int metres){
             result.RaceLog.Add(frameLog);
         }
 
-        AnalyzeAndLogResults(result, totalDistanceUnits);
+        // ビジュアライズ用スケール変換
+        const float VISUALIZE_SCALE = 1f / 5f;
+        foreach (var frame in result.RaceLog) {
+            foreach (var state in frame) {
+                state.PositionX = Mathf.FloorToInt(state.PositionX * VISUALIZE_SCALE);
+                state.PositionY *= VISUALIZE_SCALE;
+            }
+        }
 
         return result;
     }
 
-    private void AnalyzeAndLogResults(RaceSimulationResult result, int totalDistanceUnits) {
-        var sortedHorseIndices = Enumerable.Range(0, _input.HorseCount)
-            .Where(i => result.GoalTimesInFrames[i] != -1)
-            .OrderBy(i => result.GoalTimesInFrames[i])
-            .ThenBy(i => i)
-            .ToList();
-
-        for (int i = 0; i < sortedHorseIndices.Count; i++) {
-            int horseIndex = sortedHorseIndices[i];
-            int goalFrame = result.GoalTimesInFrames[horseIndex];
-            var goalFrameLog = result.RaceLog[goalFrame];
-
-            var followingHorses = sortedHorseIndices.Skip(i + 1);
-            int maxPositionOfFollowers = 0;
-            bool followerExists = false;
-
-            foreach (var followerIndex in followingHorses) {
-                int followerPosition = goalFrameLog[followerIndex].PositionX;
-                if (followerPosition > maxPositionOfFollowers) {
-                    maxPositionOfFollowers = followerPosition;
-                    followerExists = true;
-                }
-            }
-
-            if (followerExists) {
-                result.FinishMarginsInUnits[horseIndex] = totalDistanceUnits - maxPositionOfFollowers;
-            } else {
-                result.FinishMarginsInUnits[horseIndex] = 0;
-            }
-        }
-
-
+    private int MetresToPixels(int metres) {
+        const int PIXELS_PER_METRE = 500;
+        return metres * PIXELS_PER_METRE;
     }
 }
